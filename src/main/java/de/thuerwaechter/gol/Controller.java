@@ -51,10 +51,18 @@ public class Controller {
                     numberOfAliveNeighbours++;
                 }
             }
-            if(numberOfAliveNeighbours >= 2 && numberOfAliveNeighbours <= 3){
-                return Cell.CELL_STATE.ALIVE;
+            if(cell.isAlive()){
+                if(numberOfAliveNeighbours >= 2 && numberOfAliveNeighbours <= 3){
+                    return Cell.CELL_STATE.ALIVE;
+                } else {
+                    return Cell.CELL_STATE.DEAD;
+                }
             } else {
-                return Cell.CELL_STATE.DEAD;
+                if(numberOfAliveNeighbours==3){
+                    return Cell.CELL_STATE.ALIVE;
+                } else {
+                    return Cell.CELL_STATE.DEAD;
+                }
             }
         }
     }
