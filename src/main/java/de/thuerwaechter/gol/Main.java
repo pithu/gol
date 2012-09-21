@@ -5,18 +5,21 @@ import java.util.Arrays;
 /** @author <a href="philipp@thuerwaechter.de">ptur</a> */
 public class Main {
 
-    private static Point startPoint = new Point(50,50);
+    private static Point startPoint = new Point(4,7);
     private static Pattern line = Pattern.buildPattern(
             Arrays.asList(startPoint, startPoint.plusX(1), startPoint.plusX(2)));
 
-    public void main(){
-        Model model = new Model(100, 100).init(line);
+    public static void main(String[] args) {
+        Model model = new Model(7, 20).init(line);
         Canvas canvas = new Canvas(model);
         Controller controller = new Controller(model);
 
         while (controller.hasNext()){
             controller.processNextGeneration();
             canvas.paintModel(controller.getCurrentModel(), controller.getGeneration());
+            if(controller.getGeneration()==500){
+                break;
+            }
         }
     }
 

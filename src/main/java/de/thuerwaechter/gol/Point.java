@@ -26,6 +26,10 @@ public class Point {
         return new Point(x, y+diffY);
     }
 
+    public Point plusXY(final int diffX, final int diffY) {
+        return new Point(x+diffX, y+diffY);
+    }
+
     @Override
     public boolean equals(final Object other) {
         if (this == other) {
@@ -59,4 +63,5 @@ public class Point {
                 ", y=" + y +
                 '}';
     }
+
 }

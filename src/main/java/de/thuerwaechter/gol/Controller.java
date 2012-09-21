@@ -1,6 +1,8 @@
 package de.thuerwaechter.gol;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /** @author <a href="philipp@thuerwaechter.de">ptur</a> */
 public class Controller {
@@ -27,8 +29,8 @@ public class Controller {
     }
 
     public void processNextGeneration() {
-        final Model successorModel = currentModel.newEmptyModelWithSameSize();
-        List<Cell> allCells = currentModel.getAliveCellsWithNeighbours();
+        final Model successorModel = new Model(currentModel.getSizeX(), currentModel.getSizeY());
+        Collection<Cell> allCells = currentModel.getAliveCellsWithNeighbours();
         for(Cell cell : allCells){
             final Cell.CELL_STATE nextCellState = successorStateStrategy.calculateSuccessorState(cell, currentModel.getNeighbours(cell));
             successorModel.putCell(cell.newSuccessorCell(nextCellState));
