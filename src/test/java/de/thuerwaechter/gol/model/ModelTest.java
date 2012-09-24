@@ -1,8 +1,12 @@
-package de.thuerwaechter.gol;
+package de.thuerwaechter.gol.model;
 
 import java.util.Arrays;
-import java.util.Collection;
 
+import de.thuerwaechter.gol.model.Cell;
+import de.thuerwaechter.gol.model.CellBuilder;
+import de.thuerwaechter.gol.model.Model;
+import de.thuerwaechter.gol.model.Pattern;
+import de.thuerwaechter.gol.model.Point;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;

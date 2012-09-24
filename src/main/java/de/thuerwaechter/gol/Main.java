@@ -1,5 +1,9 @@
 package de.thuerwaechter.gol;
 
+import de.thuerwaechter.gol.model.Cell;
+import de.thuerwaechter.gol.model.Model;
+import de.thuerwaechter.gol.model.Pattern;
+
 /** @author <a href="philipp@thuerwaechter.de">ptur</a> */
 public class Main {
     private static final int CANVAS_SIZE_X = 50;

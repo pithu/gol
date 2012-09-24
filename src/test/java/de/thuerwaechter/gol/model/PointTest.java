@@ -1,5 +1,6 @@
-package de.thuerwaechter.gol;
+package de.thuerwaechter.gol.model;
 
+import de.thuerwaechter.gol.model.Point;
 import org.junit.Test;
 
 import static junit.framework.Assert.*;

@@ -1,4 +1,4 @@
-package de.thuerwaechter.gol;
+package de.thuerwaechter.gol.model;
 
 /** @author <a href="philipp@thuerwaechter.de">ptur</a> */
 public class Cell {

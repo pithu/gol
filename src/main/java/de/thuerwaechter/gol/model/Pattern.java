@@ -1,6 +1,5 @@
-package de.thuerwaechter.gol;
+package de.thuerwaechter.gol.model;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -37,7 +36,7 @@ public class Pattern {
     public Set<Cell>  getMovedCells(final int x, final int y){
         Set<Cell> newCells = new HashSet<Cell>();
         for(Cell cell: cells){
-            newCells.add(CellBuilder.newCell(cell.getPoint().plusXY(x,y)));
+            newCells.add(CellBuilder.newCell(cell.getPoint().plusXY(x, y)));
         }
         return newCells;
     }

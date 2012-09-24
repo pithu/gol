@@ -1,5 +1,8 @@
-package de.thuerwaechter.gol;
+package de.thuerwaechter.gol.model;
 
+import de.thuerwaechter.gol.model.Cell;
+import de.thuerwaechter.gol.model.CellBuilder;
+import de.thuerwaechter.gol.model.Point;
 import org.junit.Test;
 
 import static junit.framework.Assert.*;
@@ -8,7 +11,7 @@ import static junit.framework.Assert.*;
 public class CellTest {
     @Test
     public void testNewSuccessorCell() throws Exception {
-        Cell c1_alive = CellBuilder.newCell(new Point(42,24));
+        Cell c1_alive = CellBuilder.newCell(new Point(42, 24));
         assertTrue(c1_alive.isAlive());
         assertTrue(c1_alive.isChanged());
         assertEquals(c1_alive.getPoint(), new Point(42,24));

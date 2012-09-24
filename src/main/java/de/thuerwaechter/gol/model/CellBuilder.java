@@ -1,4 +1,4 @@
-package de.thuerwaechter.gol;
+package de.thuerwaechter.gol.model;
 
 public class CellBuilder {
     private Cell.CELL_STATE cellState;

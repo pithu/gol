@@ -1,9 +1,9 @@
 package de.thuerwaechter.gol;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
+
+import de.thuerwaechter.gol.model.Cell;
+import de.thuerwaechter.gol.model.Model;
 
 /** @author <a href="philipp@thuerwaechter.de">ptur</a> */
 public class Controller {
