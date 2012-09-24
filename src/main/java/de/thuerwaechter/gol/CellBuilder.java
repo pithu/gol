@@ -5,6 +5,13 @@ public class CellBuilder {
     private boolean changed;
     private Point point;
 
+    public CellBuilder setCell(final Cell _cell) {
+        cellState = _cell.getCellState();
+        changed = _cell.isChanged();
+        point = _cell.getPoint();
+        return this;
+    }
+
     public CellBuilder setCellState(final Cell.CELL_STATE _cellState) {
         cellState = _cellState;
         return this;
@@ -35,6 +42,4 @@ public class CellBuilder {
     public static Cell newDeadCell(final Point point){
         return new Cell(Cell.CELL_STATE.DEAD, true, point);
     }
-
-
 }

@@ -1,12 +1,12 @@
 package de.thuerwaechter.gol;
 
-import java.util.Arrays;
-
 /** @author <a href="philipp@thuerwaechter.de">ptur</a> */
 public class Main {
+    private static final int CANVAS_SIZE_X = 50;
+    private static final int CANVAS_SIZE_Y = 20;
 
     public static void main(String[] args) {
-        Model model = new Model(50, 5).init(Pattern.LINE_3DOTS);
+        Model model = Model.newFixedSizeMirrorEdgesModel(CANVAS_SIZE_X, CANVAS_SIZE_Y).putPattern(Pattern.GENERATION_54);
 
         Canvas canvas = new Canvas(model);
 
@@ -14,7 +14,7 @@ public class Main {
         while (controller.hasNext()){
             controller.processNextGeneration();
             canvas.paintModel(controller.getCurrentModel(), controller.getGeneration());
-            if(controller.getGeneration()==5){
+            if(controller.getGeneration()==70){
                 break;
             }
         }
@@ -25,8 +25,8 @@ public class Main {
         private int canvasSizeY;
 
         public Canvas(final Model model) {
-            canvasSizeX = model.getSizeX();
-            canvasSizeY = model.getSizeY();
+            canvasSizeX = CANVAS_SIZE_X;
+            canvasSizeY = CANVAS_SIZE_Y;
             paintModel(model, 0);
         }
 

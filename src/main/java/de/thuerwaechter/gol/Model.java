@@ -9,132 +9,146 @@ import java.util.Map;
 
 /** @author <a href="philipp@thuerwaechter.de">ptur</a> */
 public class Model {
-    private ModelBorderStrategy borderStrategy;
-    private final int sizeX;
-    private final int sizeY;
-    private final int memLimit = 10000;
-    private boolean changed = false;
+    public static enum MODEL_TYPE {INFINITE, FIXED_CUT, FIXED_MIRROR }
 
     private final Map<Point, Cell> cells = new HashMap<Point, Cell>();
+    private final ModelMappingStrategy borderStrategy;
+    private final MODEL_TYPE  modelType;
+    private boolean changed = false;
 
-    public Model(final int sizeX, final int sizeY) {
-        this.sizeX = sizeX;
-        this.sizeY = sizeY;
-//        borderStrategy = new InfiniteBorderStrategy();
-        borderStrategy = new MirrorBorderStrategy(0, 0, sizeX, sizeY);
+    private Model(final ModelMappingStrategy borderStrategy, final MODEL_TYPE modelType) {
+        this.borderStrategy = borderStrategy;
+        this.modelType = modelType;
     }
 
-    public Model init(final Pattern pattern) {
+    public static Model newInfiniteModel(){
+        return new Model(new InfiniteModelStrategy(), MODEL_TYPE.INFINITE);
+    }
+
+    public static Model newFixedSizeCutEdgesModel(final int x, final int y){
+        return new Model(new FixSizeCutEdgesStrategy(x,y), MODEL_TYPE.FIXED_CUT);
+    }
+
+    public static Model newFixedSizeMirrorEdgesModel(final int x, final int y){
+        return new Model(new FixSizeMirrorEdgesStrategy(x,y), MODEL_TYPE.FIXED_MIRROR);
+    }
+
+    public Model putPattern(final Pattern pattern) {
         for(Cell cell : pattern.getCells()){
             putCell(cell);
         }
         return this;
     }
 
-    public Collection<Cell> getAliveCellsWithNeighbours() {
-        Collection<Cell> focusCells = new HashSet<Cell>();
-        for(Cell cell : cells.values()){
-            focusCells.add(cell);
-            for(Cell neighbour : getNeighbours(cell)){
-                if(!focusCells.contains(neighbour)){
-                    focusCells.add(neighbour);
-                }
-            }
-        }
-        return focusCells;
-    }
-
-    public List<Cell> getNeighbours(final Cell cell) {
-        List<Cell> neighbours = new ArrayList<Cell>(8);
-        for(int x=-1; x <= 1; x++){
-            for(int y=-1; y <= 1; y++){
-                if(x==0 && y==0){
-                    continue;
-                }
-                final Point p = borderStrategy.mapPoint(cell.getPoint().plusXY(x, y));
-                neighbours.add(getCellOrCreateDeadOne(p));
-            }
-        }
-        return neighbours;
+    public Collection<Cell> getCells() {
+        return new HashSet<Cell>(cells.values());
     }
 
     public void putCell(final Cell cell) {
-        if(cells.size() >= memLimit){
-            throw new IllegalStateException("number of cells in model exceeds limit of " + memLimit);
-        }
         if(cell.isChanged()){
             changed = true;
         }
-        cells.put(borderStrategy.mapPoint(cell.getPoint()), cell);
+        final Point point = borderStrategy.mapPoint(cell.getPoint());
+        if(point == null){
+            return;
+        } else {
+            if(cell.isAlive() || cell.isChanged()){
+                if(point.equals(cell.getPoint())){
+                    cells.put(point, cell);
+                } else {
+                    cells.put(point, new CellBuilder().setCell(cell).setPoint(point).createCell());
+                }
+            } else {
+                cells.remove(point);
+            }
+        }
     }
 
     public Cell getCell(final int x, final int y) {
-        return cells.get(new Point(x,y));
+        return getCell(new Point(x,y));
     }
 
     public Cell getCell(final Point p) {
-        return cells.get(p);
-    }
-
-    public Cell getCellOrCreateDeadOne(final Point p) {
-        final Cell c = cells.get(p);
-        if(c==null){
+        final Point point = borderStrategy.mapPoint(p);
+        if(point == null){
             return CellBuilder.newDeadCell(p);
         } else {
-            return c;
+            final Cell cell = cells.get(point);
+            if(cell == null){
+                return CellBuilder.newDeadCell(p);
+            } else {
+                return cell;
+            }
         }
+    }
+
+    public MODEL_TYPE getModelType() {
+        return modelType;
     }
 
     public boolean isChanged() {
         return changed;
     }
 
-    public int getSizeX() {
-        return sizeX;
-    }
-
-    public int getSizeY() {
-        return sizeY;
-    }
-
     @Override
     public String toString() {
         return "Model{" +
-                "sizeX=" + sizeX +
-                ", sizeY=" + sizeY +
+                "cells=" + cells +
+                ", borderStrategy=" + borderStrategy +
+                ", modelType=" + modelType +
                 ", changed=" + changed +
-                ", cells=" + cells +
                 '}';
     }
 
-    private static interface ModelBorderStrategy{
-        public Point mapPoint(final Point p);
+    protected static interface ModelMappingStrategy {
+        Point mapPoint(final Point p);
     }
 
-    private static class InfiniteBorderStrategy implements ModelBorderStrategy{
+    protected static class InfiniteModelStrategy implements ModelMappingStrategy {
         public Point mapPoint(final Point p) {
             return p;
         }
     }
 
-    private static class MirrorBorderStrategy implements ModelBorderStrategy{
-        private final int minX, minY, maxX, maxY;
+    protected static class FixSizeMirrorEdgesStrategy implements ModelMappingStrategy {
+        private final int maxX, maxY;
 
-        private MirrorBorderStrategy(final int _minX, final int _minY, final int _maxX, final int _maxY) {
-            minX = _minX;
-            minY = _minY;
+        protected FixSizeMirrorEdgesStrategy(final int _maxX, final int _maxY) {
             maxX = _maxX;
             maxY = _maxY;
         }
 
         public Point mapPoint(final Point p) {
-            final int x = clip(p.getX(), minX, maxX);
-            final int y = clip(p.getY(), minY, maxY);
+            final int x = clip(p.getX(), maxX);
+            final int y = clip(p.getY(), maxY);
             return x != p.getX() || y != p.getY() ? new Point(x,y) : p;
         }
 
-        private int clip(final int value, final int min, final int max){
-            return value < min ? max : value >= max ? min : value;
+        private int clip(final int value, final int max){
+            final int clipValue = value % max;
+            if(clipValue < 0){
+                return max + clipValue;
+            } else {
+                return clipValue;
+            }
         }
     }
+
+    protected static class FixSizeCutEdgesStrategy implements ModelMappingStrategy {
+        private final int maxX, maxY;
+
+        protected FixSizeCutEdgesStrategy(final int _maxX, final int _maxY) {
+            maxX = _maxX;
+            maxY = _maxY;
+        }
+
+        public Point mapPoint(final Point p) {
+            if(p.getX() >= maxX || p.getY() >= maxY ||p.getX() < 0 || p.getY() < 0 ){
+                return null;
+            }
+            return p;
+        }
+
+    }
+
 }

@@ -2,28 +2,58 @@ package de.thuerwaechter.gol;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /** @author <a href="philipp@thuerwaechter.de">ptur</a> */
 public class Pattern {
-    private static Point startPoint = new Point(2,2);
-    public static Pattern LINE_3DOTS = buildPattern(
-            Arrays.asList(startPoint, startPoint.plusX(1), startPoint.plusX(2)));
+    public static Pattern LINE_3DOTS = buildPattern(Arrays.asList(
+            "XXX"
+    ));
+    public static Pattern GENERATION_54 = buildPattern(Arrays.asList(
+            "XXXX",
+            "X--X",
+            "X--X",
+            "X--X",
+            "",
+            "X--X",
+            "X--X",
+            "X--X",
+            "X--X",
+            "XXXX"
+    ));
 
-    private final List<Cell> cells;
+    private final Set<Cell> cells;
 
-    public Pattern(final List<Cell> __cells) {
+    public Pattern(final Set<Cell> __cells) {
         cells = __cells;
     }
 
-    public List<Cell> getCells() {
-        return new ArrayList<Cell>(cells);
+    public Set<Cell> getCells() {
+        return new HashSet<Cell>(cells);
     }
 
-    public static Pattern buildPattern(List<Point> points){
-        List<Cell> newCells = new ArrayList<Cell>(points.size());
-        for(Point point : points){
-            newCells.add(CellBuilder.newCell(point));
+    public Set<Cell>  getMovedCells(final int x, final int y){
+        Set<Cell> newCells = new HashSet<Cell>();
+        for(Cell cell: cells){
+            newCells.add(CellBuilder.newCell(cell.getPoint().plusXY(x,y)));
+        }
+        return newCells;
+    }
+
+    public static Pattern buildPattern(List<String> lines){
+        Set<Cell> newCells = new HashSet<Cell>();
+        int x = 0, y = 0;
+        for(String line : lines){
+            for(char c : line.toCharArray()) {
+                if(c=='X'){
+                    newCells.add(CellBuilder.newCell(new Point(x,y)));
+                }
+                x++;
+            }
+            x=0;
+            y++;
         }
         return new Pattern(newCells);
     }
