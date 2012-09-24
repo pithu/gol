@@ -16,15 +16,13 @@
 
 package de.thuerwaechter.gol;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 import de.thuerwaechter.gol.model.Cell;
 import de.thuerwaechter.gol.model.Model;
-import de.thuerwaechter.gol.model.Pattern;
-import de.thuerwaechter.gol.model.Point;
 
 /**
  *
@@ -40,7 +38,7 @@ public class Controller {
         modelFactory = ModelFactory.newInfiniteModelFactory();
         currentModel = modelFactory.newModel();
         generation = 0;
-        cellSuccessorStateStrategy = new ConwaysCellSuccessorStateStrategy();
+        cellSuccessorStateStrategy = new ConwaysCellSuccessorStateStrategy(new Integer[]{2,3}, new Integer[]{3});
     }
 
     public boolean modelHasNextGeneration() {
@@ -72,6 +70,13 @@ public class Controller {
     }
 
     private static class ConwaysCellSuccessorStateStrategy implements CellSuccessorStateStrategy {
+        private final Set<Integer> aliveValues;
+        private final Set<Integer> deadValues;
+
+        private ConwaysCellSuccessorStateStrategy(final Integer aliveValues[], final Integer deadValues[]) {
+            this.aliveValues = new HashSet<Integer>(Arrays.asList(aliveValues));
+            this.deadValues = new HashSet<Integer>(Arrays.asList(deadValues));
+        }
 
         public Cell.CELL_STATE calculateSuccessorState(final Cell cell, final Collection<Cell> neighbours) {
             int numberOfAliveNeighbours=0;
@@ -80,17 +85,15 @@ public class Controller {
                     numberOfAliveNeighbours++;
                 }
             }
-            // rule 1, living cells need 2 or 3 living neighbours to survive
             if(cell.isAlive()){
-                if(numberOfAliveNeighbours >= 2 && numberOfAliveNeighbours <= 3){
+                if(aliveValues.contains(numberOfAliveNeighbours)){
                     return Cell.CELL_STATE.ALIVE;
                 } else {
                     return Cell.CELL_STATE.DEAD;
                 }
             }
-            // rule 2, dead cells requires exactly 3 living neighbours to be born
            else {
-                if(numberOfAliveNeighbours==3){
+                if(deadValues.contains(numberOfAliveNeighbours)){
                     return Cell.CELL_STATE.ALIVE;
                 } else {
                     return Cell.CELL_STATE.DEAD;
