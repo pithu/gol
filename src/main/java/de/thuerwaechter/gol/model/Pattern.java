@@ -35,6 +35,34 @@ public class Pattern {
             "X-X",
             "XXX"
     ));
+    public static Pattern GLIDER = buildPattern(Arrays.asList(
+            "-X-",
+            "--X",
+            "XXX"
+    ));
+    public static Pattern HWSS = buildPattern(Arrays.asList(
+            "-XXXXXX",
+            "X-----X",
+            "------X",
+            "X----X-",
+            "--X----"
+    ));
+    public static Pattern TEST = buildPattern(Arrays.asList(
+            "-XXXXXX",
+            "X-----X",
+            "------X",
+            "X----X-",
+            "-XX----"
+    ));
+    public static Pattern X = buildPattern(Arrays.asList(
+            "X------X",
+            "-X----X-",
+            "--X--X--",
+            "---XX---",
+            "--X--X--",
+            "-X----X-",
+            "X------X"
+            ));
 
     private final Set<Cell> cells;
 

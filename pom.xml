@@ -20,7 +20,7 @@
                     <configuration>
                         <archive>
                             <manifest>
-                                <mainClass>de.thuerwaechter.gol.AsciiMain</mainClass>
+                                <mainClass>de.thuerwaechter.gol.SwingMain</mainClass>
                                 <packageName>de.thuerwaechter.gol</packageName>
                             </manifest>
                             <manifestEntries>

@@ -34,8 +34,8 @@ public class Controller {
     private int generation;
     private CellSuccessorStateStrategy cellSuccessorStateStrategy;
 
-    public Controller() {
-        modelFactory = ModelFactory.newInfiniteModelFactory();
+    public Controller(final ModelFactory modelFactory) {
+        this.modelFactory = modelFactory;
         currentModel = modelFactory.newModel();
         generation = 0;
         cellSuccessorStateStrategy = new ConwaysCellSuccessorStateStrategy(new Integer[]{2,3}, new Integer[]{3});
@@ -102,7 +102,7 @@ public class Controller {
         }
     }
 
-    private static class ModelFactory{
+    public static class ModelFactory{
         private final Model.MODEL_TYPE modelType;
         private final int sizeX, sizeY;
 
@@ -121,7 +121,7 @@ public class Controller {
         }
 
         public static ModelFactory newFixedMirrorModelFactory(final int x, final int y){
-            return new ModelFactory(Model.MODEL_TYPE.INFINITE, x, y);
+            return new ModelFactory(Model.MODEL_TYPE.FIXED_MIRROR, x, y);
         }
 
         public Model newModel(){

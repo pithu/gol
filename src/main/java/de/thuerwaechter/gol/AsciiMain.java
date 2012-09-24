@@ -28,7 +28,7 @@ public class AsciiMain {
     private static final int CANVAS_SIZE_Y = 30;
 
     public static void main(String[] args) {
-        Controller controller = new Controller();
+        Controller controller = new Controller(Controller.ModelFactory.newInfiniteModelFactory());
         controller.getModel().putPattern(Pattern.GENERATION_54.move(20,10));
 
         Canvas canvas = new Canvas(CANVAS_SIZE_X, CANVAS_SIZE_Y);
