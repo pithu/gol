@@ -27,16 +27,13 @@ public class Pattern {
             "XXX"
     ));
     public static Pattern GENERATION_54 = buildPattern(Arrays.asList(
-            "XXXX",
-            "X--X",
-            "X--X",
-            "X--X",
+            "XXX",
+            "X-X",
+            "X-X",
             "",
-            "X--X",
-            "X--X",
-            "X--X",
-            "X--X",
-            "XXXX"
+            "X-X",
+            "X-X",
+            "XXX"
     ));
 
     private final Set<Cell> cells;
@@ -49,12 +46,12 @@ public class Pattern {
         return new HashSet<Cell>(cells);
     }
 
-    public Set<Cell>  getMovedCells(final int x, final int y){
-        Set<Cell> newCells = new HashSet<Cell>();
+    public Pattern move(final int x, final int y){
+        Set<Cell> movedCells = new HashSet<Cell>();
         for(Cell cell: cells){
-            newCells.add(CellBuilder.newCell(cell.getPoint().plusXY(x, y)));
+            movedCells.add(CellBuilder.newCell(cell.getPoint().plusXY(x, y)));
         }
-        return newCells;
+        return new Pattern(movedCells);
     }
 
     public static Pattern buildPattern(List<String> lines){

@@ -20,21 +20,24 @@ import de.thuerwaechter.gol.model.Cell;
 import de.thuerwaechter.gol.model.Model;
 import de.thuerwaechter.gol.model.Pattern;
 
-/** @author <a href="pts@thuerwaechter.de">pithu</a> */
-public class Main {
+/**
+ * @author <a href="pts@thuerwaechter.de">pithu</a>
+ */
+public class AsciiMain {
     private static final int CANVAS_SIZE_X = 50;
-    private static final int CANVAS_SIZE_Y = 20;
+    private static final int CANVAS_SIZE_Y = 30;
 
     public static void main(String[] args) {
-        Model model = Model.newFixedSizeMirrorEdgesModel(CANVAS_SIZE_X, CANVAS_SIZE_Y).putPattern(Pattern.GENERATION_54);
+        Controller controller = new Controller();
+        controller.getModel().putPattern(Pattern.GENERATION_54.move(20,10));
 
-        Canvas canvas = new Canvas(model);
+        Canvas canvas = new Canvas(CANVAS_SIZE_X, CANVAS_SIZE_Y);
+        canvas.paintModel(controller.getModel(), controller.getGeneration());
 
-        Controller controller = new Controller(model);
-        while (controller.hasNext()){
+        while (controller.modelHasNextGeneration()){
             controller.processNextGeneration();
-            canvas.paintModel(controller.getCurrentModel(), controller.getGeneration());
-            if(controller.getGeneration()==70){
+            canvas.paintModel(controller.getModel(), controller.getGeneration());
+            if(!controller.modelHasNextGeneration() || controller.getGeneration()==70){
                 break;
             }
         }
@@ -44,10 +47,9 @@ public class Main {
         private int canvasSizeX;
         private int canvasSizeY;
 
-        public Canvas(final Model model) {
-            canvasSizeX = CANVAS_SIZE_X;
-            canvasSizeY = CANVAS_SIZE_Y;
-            paintModel(model, 0);
+        public Canvas(final int x, final int y) {
+            canvasSizeX = x;
+            canvasSizeY = y;
         }
 
         public void paintModel(final Model model, final int generation) {
@@ -63,10 +65,16 @@ public class Main {
         }
 
         private char getCellCharRepresentation(final Cell cell) {
-            if(cell == null || !cell.isAlive()){
+            if(cell == null){
                 return '-';
+            } else if(cell.isAlive() && cell.isChanged()) {
+                return '0';
+            } else if(cell.isAlive() && !cell.isChanged()) {
+                return 'O';
+            } else if(!cell.isAlive() && cell.isChanged()){
+                return '+';
             } else {
-                return 'X';
+                return '-';
             }
         }
     }

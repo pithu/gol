@@ -16,12 +16,16 @@
 
 package de.thuerwaechter.gol.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
-/** @author <a href="pts@thuerwaechter.de">pithu</a> */
+/**
+ * @author <a href="pts@thuerwaechter.de">pithu</a>
+ */
 public class Model {
     public static enum MODEL_TYPE {INFINITE, FIXED_CUT, FIXED_MIRROR }
 
@@ -58,6 +62,33 @@ public class Model {
         return new HashSet<Cell>(cells.values());
     }
 
+    public Collection<Cell> getCellsOfInterest() {
+        Map<Point,Cell> focusedCells = new HashMap<Point, Cell>();
+        for(Cell cell : cells.values()){
+            focusedCells.put(cell.getPoint(), cell);
+            for(Cell neighbour : getEightNeighbours(cell)){
+                if(focusedCells.get(neighbour.getPoint()) == null){
+                    focusedCells.put(neighbour.getPoint(), neighbour);
+                }
+            }
+        }
+        return focusedCells.values();
+    }
+
+    public Collection<Cell> getEightNeighbours(final Cell cell) {
+        List<Cell> neighbours = new ArrayList<Cell>(8);
+        for(int x=-1; x <= 1; x++){
+            for(int y=-1; y <= 1; y++){
+                if(x==0 && y==0){
+                    continue;
+                }
+                final Point p = cell.getPoint().plusXY(x, y);
+                neighbours.add(getCell(p));
+            }
+        }
+        return neighbours;
+    }
+
     public void putCell(final Cell cell) {
         if(cell.isChanged()){
             changed = true;
@@ -85,11 +116,11 @@ public class Model {
     public Cell getCell(final Point p) {
         final Point point = borderStrategy.mapPoint(p);
         if(point == null){
-            return CellBuilder.newDeadCell(p);
+            return CellBuilder.newDeadUnchangedCell(p);
         } else {
             final Cell cell = cells.get(point);
             if(cell == null){
-                return CellBuilder.newDeadCell(p);
+                return CellBuilder.newDeadUnchangedCell(p);
             } else {
                 return cell;
             }

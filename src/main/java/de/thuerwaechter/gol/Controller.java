@@ -16,28 +16,38 @@
 
 package de.thuerwaechter.gol;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import de.thuerwaechter.gol.model.Cell;
 import de.thuerwaechter.gol.model.Model;
+import de.thuerwaechter.gol.model.Pattern;
+import de.thuerwaechter.gol.model.Point;
 
-/** @author <a href="pts@thuerwaechter.de">pithu</a> */
+/**
+ *
+ * @author <a href="pts@thuerwaechter.de">pithu</a>
+ */
 public class Controller {
+    private ModelFactory modelFactory;
     private Model currentModel;
     private int generation;
-    private SuccessorStateStrategy successorStateStrategy;
+    private CellSuccessorStateStrategy cellSuccessorStateStrategy;
 
-    public Controller(final Model model) {
-        currentModel = model;
+    public Controller() {
+        modelFactory = ModelFactory.newInfiniteModelFactory();
+        currentModel = modelFactory.newModel();
         generation = 0;
-        successorStateStrategy = new DefaultSuccessorStateStrategy();
+        cellSuccessorStateStrategy = new ConwaysCellSuccessorStateStrategy();
     }
 
-    public boolean hasNext() {
+    public boolean modelHasNextGeneration() {
         return currentModel.isChanged();
     }
 
-    public Model getCurrentModel() {
+    public Model getModel() {
         return currentModel;
     }
 
@@ -46,37 +56,40 @@ public class Controller {
     }
 
     public void processNextGeneration() {
-/*
-        final Model successorModel = new Model(currentModel.getSizeX(), currentModel.getSizeY(), true);
-        Collection<Cell> allCells = currentModel.getAllFocusedCells();
-        for(Cell cell : allCells){
-            final Cell.CELL_STATE nextCellState = successorStateStrategy.calculateSuccessorState(cell, currentModel.getNeighbours(cell));
+        final Model successorModel = modelFactory.newModel();
+        Collection<Cell> cellsOfInterest = currentModel.getCellsOfInterest();
+        for(Cell cell : cellsOfInterest){
+            final Cell.CELL_STATE nextCellState = cellSuccessorStateStrategy.calculateSuccessorState(
+                    cell, currentModel.getEightNeighbours(cell));
             successorModel.putCell(cell.newSuccessorCell(nextCellState));
         }
         currentModel = successorModel;
         generation++;
-*/
     }
 
-    private static interface SuccessorStateStrategy{
-        public Cell.CELL_STATE calculateSuccessorState(Cell cell, List<Cell> neighbours);
+    private static interface CellSuccessorStateStrategy {
+        Cell.CELL_STATE calculateSuccessorState(Cell cell, Collection<Cell> neighbours);
     }
 
-    private static class DefaultSuccessorStateStrategy implements SuccessorStateStrategy{
-        public Cell.CELL_STATE calculateSuccessorState(final Cell cell, final List<Cell> neighbours) {
+    private static class ConwaysCellSuccessorStateStrategy implements CellSuccessorStateStrategy {
+
+        public Cell.CELL_STATE calculateSuccessorState(final Cell cell, final Collection<Cell> neighbours) {
             int numberOfAliveNeighbours=0;
             for(Cell neighbour : neighbours){
                 if(neighbour.isAlive()){
                     numberOfAliveNeighbours++;
                 }
             }
+            // rule 1, living cells need 2 or 3 living neighbours to survive
             if(cell.isAlive()){
                 if(numberOfAliveNeighbours >= 2 && numberOfAliveNeighbours <= 3){
                     return Cell.CELL_STATE.ALIVE;
                 } else {
                     return Cell.CELL_STATE.DEAD;
                 }
-            } else {
+            }
+            // rule 2, dead cells requires exactly 3 living neighbours to be born
+           else {
                 if(numberOfAliveNeighbours==3){
                     return Cell.CELL_STATE.ALIVE;
                 } else {
@@ -86,34 +99,36 @@ public class Controller {
         }
     }
 
-/*
-    public Collection<Cell> getAllFocusedCells() {
-        Collection<Cell> focusCells = new HashSet<Cell>();
-        for(Cell cell : cells.values()){
-            focusCells.add(cell);
-            for(Cell neighbour : getNeighbours(cell)){
-                if(!focusCells.contains(neighbour)){
-                    focusCells.add(neighbour);
-                }
+    private static class ModelFactory{
+        private final Model.MODEL_TYPE modelType;
+        private final int sizeX, sizeY;
+
+        private ModelFactory(final Model.MODEL_TYPE modelType, final int sizeX, final int sizeY) {
+            this.modelType = modelType;
+            this.sizeX = sizeX;
+            this.sizeY = sizeY;
+        }
+
+        public static ModelFactory newInfiniteModelFactory(){
+            return new ModelFactory(Model.MODEL_TYPE.INFINITE, 0, 0);
+        }
+
+        public static ModelFactory newFixedCutModelFactory(final int x, final int y){
+            return new ModelFactory(Model.MODEL_TYPE.FIXED_CUT, x, y);
+        }
+
+        public static ModelFactory newFixedMirrorModelFactory(final int x, final int y){
+            return new ModelFactory(Model.MODEL_TYPE.INFINITE, x, y);
+        }
+
+        public Model newModel(){
+            if(modelType == Model.MODEL_TYPE.INFINITE){
+                return Model.newInfiniteModel();
+            } else if (modelType == Model.MODEL_TYPE.FIXED_CUT){
+                return Model.newFixedSizeCutEdgesModel(sizeX, sizeY);
+            } else {
+                return Model.newFixedSizeMirrorEdgesModel(sizeX, sizeY);
             }
         }
-        return focusCells;
     }
-
-    public List<Cell> getNeighbours(final Cell cell) {
-        List<Cell> neighbours = new ArrayList<Cell>(8);
-        for(int x=-1; x <= 1; x++){
-            for(int y=-1; y <= 1; y++){
-                if(x==0 && y==0){
-                    continue;
-                }
-                final Point p = cell.getPoint().plusXY(x, y);
-                neighbours.add(getCell(p));
-            }
-        }
-        return neighbours;
-    }
-
-*/
-
 }

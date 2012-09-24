@@ -58,4 +58,8 @@ public class CellBuilder {
     public static Cell newDeadCell(final Point point){
         return new Cell(Cell.CELL_STATE.DEAD, true, point);
     }
+
+    public static Cell newDeadUnchangedCell(final Point point) {
+        return new Cell(Cell.CELL_STATE.DEAD, false, point);
+    }
 }

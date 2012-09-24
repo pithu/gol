@@ -58,7 +58,7 @@ public class ModelTest {
     public void testGetAndPut(){
         Model model = Model.newInfiniteModel();
 
-        assertEquals(CellBuilder.newDeadCell(POINT_00), model.getCell(POINT_00));
+        assertEquals(CellBuilder.newDeadUnchangedCell(POINT_00), model.getCell(POINT_00));
 
         model.putCell(CellBuilder.newCell(POINT_00));
         assertEquals(CellBuilder.newCell(POINT_00), model.getCell(POINT_00));
@@ -88,12 +88,12 @@ public class ModelTest {
         assertTrue(model.isChanged());
         assertTrue(model.getCells().size()==3);
 
-        assertEquals(model.getCell(new Point(0, 0)), CellBuilder.newDeadCell(new Point(0, 0)));
-        assertEquals(model.getCell(new Point(1, 0)), CellBuilder.newDeadCell(new Point(1, 0)));
+        assertEquals(model.getCell(new Point(0, 0)), CellBuilder.newDeadUnchangedCell(new Point(0, 0)));
+        assertEquals(model.getCell(new Point(1, 0)), CellBuilder.newDeadUnchangedCell(new Point(1, 0)));
         assertEquals(model.getCell(new Point(2,0)), CellBuilder.newCell(new Point(2,0)));
         assertEquals(model.getCell(new Point(3,0)), CellBuilder.newCell(new Point(3,0)));
         assertEquals(model.getCell(new Point(4, 0)), CellBuilder.newCell(new Point(4, 0)));
-        assertEquals(model.getCell(new Point(5, 0)), CellBuilder.newDeadCell(new Point(5, 0)));
+        assertEquals(model.getCell(new Point(5, 0)), CellBuilder.newDeadUnchangedCell(new Point(5, 0)));
     }
 
     @Test
@@ -123,7 +123,7 @@ public class ModelTest {
 
         model.putCell(CellBuilder.newCell(new Point(-1,-1)));
         assertTrue(model.getCells().size() == 1);
-        assertEquals(CellBuilder.newDeadCell(new Point(-1, -1)), model.getCell(new Point(-1, -1)));
+        assertEquals(CellBuilder.newDeadUnchangedCell(new Point(-1, -1)), model.getCell(new Point(-1, -1)));
 
         model.putCell(CellBuilder.newCell(new Point(-1,0)));
         assertTrue(model.getCells().size()==1);
