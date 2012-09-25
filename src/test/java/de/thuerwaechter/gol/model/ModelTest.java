@@ -154,7 +154,7 @@ public class ModelTest {
 
         model.putCell(CellBuilder.newCell(new Point(-1,-1)));
         assertTrue(model.getCells().size() == 1);
-        assertEquals(CellBuilder.newDeadUnchangedCell(new Point(-1, -1)), model.getCell(new Point(-1, -1)));
+        assertNull(model.getCell(new Point(-1, -1)));
 
         model.putCell(CellBuilder.newCell(new Point(-1,0)));
         assertTrue(model.getCells().size()==1);

@@ -85,7 +85,10 @@ public class Model {
                     continue;
                 }
                 final Point p = cell.getPoint().plusXY(x, y);
-                neighbours.add(getCell(p));
+                final Cell c = getCell(p);
+                if(c!=null){
+                    neighbours.add(c);
+                }
             }
         }
         return neighbours;
@@ -118,11 +121,11 @@ public class Model {
     public Cell getCell(final Point p) {
         final Point point = borderStrategy.mapPoint(p);
         if(point == null){
-            return CellBuilder.newDeadUnchangedCell(p);
+            return null;
         } else {
             final Cell cell = cells.get(point);
             if(cell == null){
-                return CellBuilder.newDeadUnchangedCell(p);
+                return CellBuilder.newDeadUnchangedCell(point);
             } else {
                 return cell;
             }

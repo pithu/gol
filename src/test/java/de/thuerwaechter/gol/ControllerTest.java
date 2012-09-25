@@ -42,7 +42,7 @@ public class ControllerTest {
 
         controller.processNextGeneration();
         assertTrue(controller.modelHasNextGeneration());
-        assertEquals(21, controller.getModel().getCells().size());
+        assertEquals(15, controller.getModel().getCells().size());
         assertEquals(controller.getModel().getCell(0, 0), CellBuilder.newDeadUnchangedCell(new Point(0, 0)));
         assertEquals(controller.getModel().getCell(0, 1), CellBuilder.newDeadCell(new Point(0, 1)));
         assertEquals(controller.getModel().getCell(1,0), CellBuilder.newCell(new Point(1, 0)));
