@@ -90,7 +90,7 @@ public class Cell {
     @Override
     public String toString() {
         return "Cell{" +
-                "alive=" + cellState +
+                "cellState=" + cellState +
                 ", changed=" + changed +
                 ", point=" + point +
                 '}';
