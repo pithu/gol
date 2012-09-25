@@ -17,17 +17,11 @@
 package de.thuerwaechter.gol.model;
 
 import java.util.Arrays;
+import java.util.Collection;
 
-import de.thuerwaechter.gol.model.Cell;
-import de.thuerwaechter.gol.model.CellBuilder;
-import de.thuerwaechter.gol.model.Model;
-import de.thuerwaechter.gol.model.Pattern;
-import de.thuerwaechter.gol.model.Point;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.*;
 
 /** @author <a href="pts@thuerwaechter.de">pithu</a> */
 public class ModelTest {
@@ -86,7 +80,7 @@ public class ModelTest {
         Model model = Model.newInfiniteModel().putPattern(pattern);
 
         assertTrue(model.isChanged());
-        assertTrue(model.getCells().size()==3);
+        assertEquals(15, model.getCells().size());
 
         assertEquals(model.getCell(new Point(0, 0)), CellBuilder.newDeadUnchangedCell(new Point(0, 0)));
         assertEquals(model.getCell(new Point(1, 0)), CellBuilder.newDeadUnchangedCell(new Point(1, 0)));
@@ -94,6 +88,43 @@ public class ModelTest {
         assertEquals(model.getCell(new Point(3,0)), CellBuilder.newCell(new Point(3,0)));
         assertEquals(model.getCell(new Point(4, 0)), CellBuilder.newCell(new Point(4, 0)));
         assertEquals(model.getCell(new Point(5, 0)), CellBuilder.newDeadUnchangedCell(new Point(5, 0)));
+    }
+
+    @Test
+    public void testGetNeighbours(){
+        Pattern pattern = Pattern.buildPattern(Arrays.asList("-XX"));
+        Model model = Model.newInfiniteModel().putPattern(pattern);
+        Collection<Cell> neighbours = model.getEightNeighbours(model.getCell(new Point(1,0)));
+
+        assertEquals(8, neighbours.size());
+        assertTrue(neighbours.contains(CellBuilder.newCell(2, 0)));
+        assertTrue(neighbours.contains(CellBuilder.newDeadUnchangedCell(new Point(0, 0))));
+    }
+
+    @Test
+    public void testPopulateNeighbours01(){
+        Pattern pattern = Pattern.buildPattern(Arrays.asList("-X-"));
+        Model model = Model.newInfiniteModel().putPattern(pattern);
+        model.populateNeighbours();
+        Collection<Cell> cells = model.getCells();
+
+        assertEquals(9, cells.size());
+        assertTrue(cells.contains(CellBuilder.newCell(1, 0)));
+        assertTrue(cells.contains(CellBuilder.newDeadUnchangedCell(new Point(0, 0))));
+    }
+
+    @Test
+    public void testPopulateNeighbours02(){
+        Pattern pattern = Pattern.buildPattern(Arrays.asList("-X-X-"));
+        Model model = Model.newInfiniteModel().putPattern(pattern);
+        model.populateNeighbours();
+        Collection<Cell> cells = model.getCells();
+
+        assertEquals(15, cells.size());
+        assertTrue(cells.contains(CellBuilder.newCell(1, 0)));
+        assertTrue(cells.contains(CellBuilder.newCell(3, 0)));
+        assertTrue(cells.contains(CellBuilder.newDeadUnchangedCell(new Point(0, 0))));
+        assertTrue(cells.contains(CellBuilder.newDeadUnchangedCell(new Point(2, 0))));
     }
 
     @Test

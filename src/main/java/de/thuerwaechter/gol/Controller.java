@@ -55,12 +55,13 @@ public class Controller {
 
     public void processNextGeneration() {
         final Model successorModel = modelFactory.newModel();
-        Collection<Cell> cellsOfInterest = currentModel.getCellsOfInterest();
-        for(Cell cell : cellsOfInterest){
+        Collection<Cell> cells = currentModel.getCells();
+        for(Cell cell : cells){
             final Cell.CELL_STATE nextCellState = cellSuccessorStateStrategy.calculateSuccessorState(
                     cell, currentModel.getEightNeighbours(cell));
             successorModel.putCell(cell.newSuccessorCell(nextCellState));
         }
+        successorModel.populateNeighbours();
         currentModel = successorModel;
         generation++;
     }

@@ -20,10 +20,12 @@ package de.thuerwaechter.gol.model;
 public class Point {
     private final int x;
     private final int y;
+    private final int hashCode;
 
     public Point(final int x, final int y) {
         this.x = x;
         this.y = y;
+        this.hashCode = _hashCode();
     }
 
     public int getX() {
@@ -67,9 +69,13 @@ public class Point {
         return true;
     }
 
+    private int _hashCode() {
+        return 31 * x + y;
+    }
+
     @Override
     public int hashCode() {
-        return 31 * x + y;
+        return hashCode;
     }
 
     @Override

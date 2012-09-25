@@ -55,24 +55,26 @@ public class Model {
         for(Cell cell : pattern.getCells()){
             putCell(cell);
         }
+        populateNeighbours();
         return this;
     }
 
     public Collection<Cell> getCells() {
-        return new HashSet<Cell>(cells.values());
+        return cells.values();
     }
 
-    public Collection<Cell> getCellsOfInterest() {
-        Map<Point,Cell> focusedCells = new HashMap<Point, Cell>();
-        for(Cell cell : cells.values()){
-            focusedCells.put(cell.getPoint(), cell);
+    public void populateNeighbours() {
+        final Collection<Cell> cellValues = new HashSet<Cell>(cells.values());
+        for(Cell cell : cellValues){
+            if(!cell.isAlive()){
+                continue;
+            }
             for(Cell neighbour : getEightNeighbours(cell)){
-                if(focusedCells.get(neighbour.getPoint()) == null){
-                    focusedCells.put(neighbour.getPoint(), neighbour);
+                if(cells.get(neighbour.getPoint()) == null){
+                    cells.put(neighbour.getPoint(), neighbour);
                 }
             }
         }
-        return focusedCells.values();
     }
 
     public Collection<Cell> getEightNeighbours(final Cell cell) {

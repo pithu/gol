@@ -73,7 +73,7 @@ public class SwingMain {
             final int gridSizeX = (CANVAS_SIZE_X)/scaleFactor;
             final int gridSizeY = (CANVAS_SIZE_Y)/scaleFactor;
 
-            controller = new Controller(Controller.ModelFactory.newFixedMirrorModelFactory(gridSizeX, gridSizeY));
+            controller = new Controller(Controller.ModelFactory.newInfiniteModelFactory());
             controller.getModel().putPattern(PATTERN.move(gridSizeX/2, gridSizeY/2));
 
             timer = new Timer(PAINT_SPEED, this);
