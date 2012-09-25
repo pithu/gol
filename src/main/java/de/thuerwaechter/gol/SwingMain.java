@@ -39,7 +39,7 @@ public class SwingMain {
     private static final int CANVAS_SIZE_Y = 500;
 
     private static final Pattern initialPattern = Pattern.TEST;
-    private static final Model.MODEL_TYPE modelType = Model.MODEL_TYPE.INFINITE;
+    private static final Model.MODEL_TYPE modelType = Model.MODEL_TYPE.FIXED_CUT;
     private static int scaleFactor = 10;
 
     private static Color gridColor = Color.GRAY;
@@ -79,7 +79,7 @@ public class SwingMain {
             timer = new Timer(PAINT_SPEED, this);
             timer.start();
 
-            setBorder(BorderFactory.createLineBorder(Color.black));
+            // setBorder(BorderFactory.createLineBorder(Color.black));
 
             addMouseListener(new MouseAdapter(){
                 public void mousePressed(MouseEvent e){
@@ -161,11 +161,24 @@ public class SwingMain {
             gridHeight = gridSizeY*scaleFactor;
         }
 
+        private void reCenterGrid(final int panelWidth, final int panelHeight) {
+            gridOffsetX = (((panelWidth - gridWidth) / 2) / scaleFactor) * scaleFactor ;
+            gridOffsetY = (((panelHeight - gridHeight) / 2) / scaleFactor) * scaleFactor ;
+            if(gridOffsetX==0){
+                gridOffsetX = scaleFactor;
+            }
+            if(gridOffsetY==0){
+                gridOffsetY = scaleFactor;
+            }
+        }
+
         public void handleResize(final int panelWidth, final int panelHeight) {
             if(!init){
                 return;
             }
-            if(!Controller.isFixedModelType(modelType)){
+            if(Controller.isFixedModelType(modelType)){
+                reCenterGrid(panelWidth, panelHeight);
+            } else {
                 calculateGridSize(panelWidth, panelHeight);
             }
         }
@@ -180,7 +193,7 @@ public class SwingMain {
                 g.setColor(gridColor);
                 g.drawLine(x, gridOffsetY, x, gridHeight + gridOffsetY);
             }
-            for(int y = gridOffsetX; y <= gridHeight + gridOffsetY; y += scaleFactor){
+            for(int y = gridOffsetY; y <= gridHeight + gridOffsetY; y += scaleFactor){
                 g.setColor(gridColor);
                 g.drawLine(gridOffsetX, y, gridWidth + gridOffsetX, y);
             }
@@ -191,7 +204,7 @@ public class SwingMain {
         }
 
         public void paintModel(Graphics g){
-            final Dot dot = new Dot(scaleFactor);
+            final Dot dot = new Dot(gridOffsetX, gridOffsetY, scaleFactor);
             for(Cell cell : controller.getModel().getCells()){
                 if(cell.isAlive()){
                     if(cell.isChanged()){
@@ -237,9 +250,9 @@ public class SwingMain {
         private int x,y, width, height;
         private Color color;
 
-        public Dot(final int squareSize){
-            this.gridOffsetX = squareSize;
-            this.gridOffsetY = squareSize;
+        public Dot(final int gridOffsetX, final int gridOffsetY, final int squareSize){
+            this.gridOffsetX = gridOffsetX;
+            this.gridOffsetY = gridOffsetY;
             this.width = squareSize;
             this.height = squareSize;
             this.color = backGroundColor;
