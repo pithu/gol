@@ -32,12 +32,12 @@ public class AsciiMain {
         controller.getModel().putPattern(Pattern.GENERATION_54.move(20,10));
 
         Canvas canvas = new Canvas(CANVAS_SIZE_X, CANVAS_SIZE_Y);
-        canvas.paintModel(controller.getModel(), controller.getGeneration());
+        canvas.paintModel(controller.getModel(), controller.getNrOfGeneration());
 
         while (controller.modelHasNextGeneration()){
             controller.processNextGeneration();
-            canvas.paintModel(controller.getModel(), controller.getGeneration());
-            if(!controller.modelHasNextGeneration() || controller.getGeneration()==70){
+            canvas.paintModel(controller.getModel(), controller.getNrOfGeneration());
+            if(!controller.modelHasNextGeneration() || controller.getNrOfGeneration()==70){
                 break;
             }
         }

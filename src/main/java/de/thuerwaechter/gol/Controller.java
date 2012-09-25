@@ -31,13 +31,13 @@ import de.thuerwaechter.gol.model.Model;
 public class Controller {
     private ModelFactory modelFactory;
     private Model currentModel;
-    private int generation;
+    private int nrOfGeneration;
     private CellSuccessorStateStrategy cellSuccessorStateStrategy;
 
     public Controller(final ModelFactory modelFactory) {
         this.modelFactory = modelFactory;
         currentModel = modelFactory.newModel();
-        generation = 0;
+        nrOfGeneration = 0;
         cellSuccessorStateStrategy = new ConwaysCellSuccessorStateStrategy(new Integer[]{2,3}, new Integer[]{3});
     }
 
@@ -49,8 +49,8 @@ public class Controller {
         return currentModel;
     }
 
-    public int getGeneration() {
-        return generation;
+    public int getNrOfGeneration() {
+        return nrOfGeneration;
     }
 
     public void processNextGeneration() {
@@ -63,7 +63,7 @@ public class Controller {
         }
         successorModel.populateNeighbours();
         currentModel = successorModel;
-        generation++;
+        nrOfGeneration++;
     }
 
     private static interface CellSuccessorStateStrategy {
@@ -107,7 +107,7 @@ public class Controller {
         private final Model.MODEL_TYPE modelType;
         private final int sizeX, sizeY;
 
-        private ModelFactory(final Model.MODEL_TYPE modelType, final int sizeX, final int sizeY) {
+        public ModelFactory(final Model.MODEL_TYPE modelType, final int sizeX, final int sizeY) {
             this.modelType = modelType;
             this.sizeX = sizeX;
             this.sizeY = sizeY;

@@ -19,11 +19,14 @@ package de.thuerwaechter.gol;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.*;
 
 import de.thuerwaechter.gol.model.Cell;
+import de.thuerwaechter.gol.model.Model;
 import de.thuerwaechter.gol.model.Pattern;
 
 /**
@@ -31,21 +34,24 @@ import de.thuerwaechter.gol.model.Pattern;
  */
 public class SwingMain {
     private static final int PAINT_SPEED = 100;
+
     private static final int CANVAS_SIZE_X = 500;
     private static final int CANVAS_SIZE_Y = 500;
-    private static final int GRID_OFFSET = 10;
-    private static final Pattern PATTERN = Pattern.TEST;
+
+    private static final Pattern initialPattern = Pattern.TEST;
+    private static final Model.MODEL_TYPE modelType = Model.MODEL_TYPE.INFINITE;
+    private static int scaleFactor = 10;
+
     private static Color gridColor = Color.GRAY;
+    private static Color gridBoundaryColor = Color.BLACK;
     private static Color backGroundColor = Color.WHITE;
     private static Color aliveChanged = Color.RED;
     private static Color aliveUnChanged = Color.BLACK;
     private static Color deadChanged = Color.LIGHT_GRAY;
     private static Color deadUnChanged = Color.WHITE;
 
-    private static int scaleFactor = 10;
 
     public static void main(String[] args) {
-
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 createAndShowGUI();
@@ -54,28 +60,22 @@ public class SwingMain {
     }
 
     private static void createAndShowGUI() {
-        System.out.println("Created GUI on EDT? "+
-                SwingUtilities.isEventDispatchThread());
         JFrame f = new JFrame("Game of life alpha");
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.setSize(CANVAS_SIZE_X + 2*GRID_OFFSET, CANVAS_SIZE_Y + 5*GRID_OFFSET);
+        f.setSize(CANVAS_SIZE_X, CANVAS_SIZE_Y);
         f.setLocation(30, 30);
         f.setVisible(true);
         f.add(new ControllerPanel());
+        System.out.println("Created GUI on EDT? " +
+                SwingUtilities.isEventDispatchThread());
     }
 
     private static class ControllerPanel extends JPanel implements ActionListener {
-        private final Controller controller;
+        private final SwingController swingController = new SwingController();
         private final Timer timer;
         private SwingWorker<Void, Void> worker;
 
         public ControllerPanel() {
-            final int gridSizeX = (CANVAS_SIZE_X)/scaleFactor;
-            final int gridSizeY = (CANVAS_SIZE_Y)/scaleFactor;
-
-            controller = new Controller(Controller.ModelFactory.newInfiniteModelFactory());
-            controller.getModel().putPattern(PATTERN.move(gridSizeX/2, gridSizeY/2));
-
             timer = new Timer(PAINT_SPEED, this);
             timer.start();
 
@@ -95,41 +95,72 @@ public class SwingMain {
 
         @Override
         public void actionPerformed(final ActionEvent e) {
-            repaint();
-            if(worker==null || worker.isDone()){
-                worker = new SwingWorker<Void, Void>(){
-                    @Override
-                    protected Void doInBackground() throws Exception {
-                        if(controller.modelHasNextGeneration()){
-                            controller.processNextGeneration();
-                        }
-                        return null;
-                    }
-                };
-                worker.execute();
+            if(swingController.trigger()){
+                repaint();
             }
         }
 
         public void paintComponent(Graphics g) {
             setBackground(backGroundColor);
             super.paintComponent(g);
+            swingController.initialize(getWidth(), getHeight());
+            swingController.paint(g);
+        }
+     }
+
+    private static class SwingController{
+        private int gridOffsetX, gridOffsetY;
+        private int gridSizeX, gridSizeY;
+        private int gridWidth, gridHeight;
+
+        private Controller controller;
+        private boolean init = false;
+        private SwingWorker<Void, Void> worker;
+
+        public boolean isInit() {
+            return init;
+        }
+
+        public void initialize(final int panelWidth, final int panelHeight){
+            if(init){
+                return;
+            }
+            init = true;
+
+            gridOffsetX = scaleFactor;
+            gridOffsetY = scaleFactor;
+            gridSizeX = (panelWidth-gridOffsetX-2)/scaleFactor;
+            gridSizeY = (panelHeight-gridOffsetY-2)/scaleFactor;
+            gridWidth = gridSizeX*scaleFactor;
+            gridHeight = gridSizeY*scaleFactor;
+
+            // TDOD calculate gridsize and canvas size
+            controller = new Controller(new Controller.ModelFactory(modelType, gridSizeX, gridSizeY));
+            controller.getModel().putPattern(initialPattern.move(gridSizeX/2, gridSizeY/2));
+       }
+
+        public void paint(final Graphics g) {
             paintGrid(g);
             paintModel(g);
         }
 
         private void paintGrid(final Graphics g) {
-            for(int x= GRID_OFFSET; x<=CANVAS_SIZE_X+ GRID_OFFSET; x += scaleFactor){
+             for(int x= gridOffsetX; x<=gridWidth + gridOffsetX; x += scaleFactor){
                 g.setColor(gridColor);
-                g.drawLine(x, GRID_OFFSET,x,CANVAS_SIZE_Y+ GRID_OFFSET);
+                g.drawLine(x, gridOffsetY, x, gridHeight + gridOffsetY);
             }
-            for(int y= GRID_OFFSET; y<=CANVAS_SIZE_Y+ GRID_OFFSET; y += scaleFactor){
+            for(int y = gridOffsetX; y <= gridHeight + gridOffsetY; y += scaleFactor){
                 g.setColor(gridColor);
-                g.drawLine(GRID_OFFSET,y,CANVAS_SIZE_X+ GRID_OFFSET,y);
+                g.drawLine(gridOffsetX, y, gridWidth + gridOffsetX, y);
+            }
+            if(modelType == Model.MODEL_TYPE.FIXED_MIRROR || modelType == Model.MODEL_TYPE.FIXED_CUT){
+                g.setColor(gridBoundaryColor);
+                g.drawRect(gridOffsetX, gridOffsetY, gridWidth, gridHeight);
             }
         }
 
         public void paintModel(Graphics g){
-            final Dot dot = new Dot(scaleFactor,scaleFactor);
+            final Dot dot = new Dot(scaleFactor);
             for(Cell cell : controller.getModel().getCells()){
                 if(cell.isAlive()){
                     if(cell.isChanged()){
@@ -148,15 +179,38 @@ public class SwingMain {
             }
         }
 
+        public boolean trigger() {
+            if(!isInit()){
+                return false;
+            }
+
+            if(worker==null || worker.isDone()){
+                worker = new SwingWorker<Void, Void>(){
+                    @Override
+                    protected Void doInBackground() throws Exception {
+                        if(controller.modelHasNextGeneration()){
+                            controller.processNextGeneration();
+                        }
+                        return null;
+                    }
+                };
+                worker.execute();
+                return true;
+            }
+            return false;
+        }
     }
 
     private static class Dot{
+        private int gridOffsetX, gridOffsetY;
         private int x,y, width, height;
         private Color color;
 
-        public Dot(int width, int height){
-            this.width = width;
-            this.height = height;
+        public Dot(final int squareSize){
+            this.gridOffsetX = squareSize;
+            this.gridOffsetY = squareSize;
+            this.width = squareSize;
+            this.height = squareSize;
             this.color = backGroundColor;
         }
 
@@ -174,9 +228,9 @@ public class SwingMain {
 
         public void paintDot(Graphics g){
             g.setColor(color);
-            g.fillRect(x+GRID_OFFSET, y+GRID_OFFSET, width, height);
+            g.fillRect(x+gridOffsetX, y+gridOffsetY, width, height);
             g.setColor(gridColor);
-            g.drawRect(x+GRID_OFFSET, y+GRID_OFFSET, width, height);
+            g.drawRect(x+gridOffsetX, y+gridOffsetY, width, height);
         }
 
         @Override
