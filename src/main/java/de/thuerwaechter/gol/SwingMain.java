@@ -39,7 +39,7 @@ public class SwingMain {
     private static final int CANVAS_SIZE_Y = 500;
 
     private static final Pattern initialPattern = Pattern.TEST;
-    private static final Model.MODEL_TYPE modelType = Model.MODEL_TYPE.INFINITE;
+    private static final Model.MODEL_TYPE modelType = Model.MODEL_TYPE.FIXED_CUT;
     private static int scaleFactor = 10;
 
     private static Color gridColor = Color.GRAY;
