@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import de.thuerwaechter.gol.model.Cell;
 import de.thuerwaechter.gol.model.Model;
@@ -29,13 +30,13 @@ import de.thuerwaechter.gol.model.Model;
  * @author <a href="pts@thuerwaechter.de">pithu</a>
  */
 public class Controller {
-    private ModelFactory modelFactory;
+    private final AtomicReference<ModelFactory> modelFactory = new AtomicReference<ModelFactory>();
     private Model currentModel;
     private int nrOfGeneration;
     private CellSuccessorStateStrategy cellSuccessorStateStrategy;
 
     public Controller(final ModelFactory modelFactory) {
-        this.modelFactory = modelFactory;
+        this.modelFactory.set(modelFactory);
         currentModel = modelFactory.newModel();
         nrOfGeneration = 0;
         cellSuccessorStateStrategy = new ConwaysCellSuccessorStateStrategy(new Integer[]{2,3}, new Integer[]{3});
@@ -49,12 +50,16 @@ public class Controller {
         return currentModel;
     }
 
+    public void setModelFactory(final ModelFactory modelFactory) {
+        this.modelFactory.set(modelFactory);
+    }
+
     public int getNrOfGeneration() {
         return nrOfGeneration;
     }
 
     public void processNextGeneration() {
-        final Model successorModel = modelFactory.newModel();
+        final Model successorModel = modelFactory.get().newModel();
         Collection<Cell> cells = currentModel.getCells();
         for(Cell cell : cells){
             final Cell.CELL_STATE nextCellState = cellSuccessorStateStrategy.calculateSuccessorState(
@@ -64,6 +69,10 @@ public class Controller {
         successorModel.populateNeighbours();
         currentModel = successorModel;
         nrOfGeneration++;
+    }
+
+    public static boolean isFixedModelType(Model.MODEL_TYPE modelType){
+        return modelType == Model.MODEL_TYPE.FIXED_MIRROR || modelType == Model.MODEL_TYPE.FIXED_CUT;
     }
 
     private static interface CellSuccessorStateStrategy {

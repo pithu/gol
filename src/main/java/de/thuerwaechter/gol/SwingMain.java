@@ -39,7 +39,7 @@ public class SwingMain {
     private static final int CANVAS_SIZE_Y = 500;
 
     private static final Pattern initialPattern = Pattern.TEST;
-    private static final Model.MODEL_TYPE modelType = Model.MODEL_TYPE.FIXED_CUT;
+    private static final Model.MODEL_TYPE modelType = Model.MODEL_TYPE.INFINITE;
     private static int scaleFactor = 10;
 
     private static Color gridColor = Color.GRAY;
@@ -91,6 +91,25 @@ public class SwingMain {
                 }
             });
 
+            addComponentListener(new ComponentListener() {
+                public void componentResized(ComponentEvent arg0) {
+                    handleResize();
+                }
+
+                public void componentMoved(ComponentEvent arg0) {
+                }
+
+                public void componentShown(ComponentEvent arg0) {
+                }
+
+                public void componentHidden(ComponentEvent arg0) {
+                }
+            });
+
+        }
+
+        private void handleResize() {
+            swingController.handleResize(getWidth(), getHeight());
         }
 
         @Override
@@ -127,17 +146,29 @@ public class SwingMain {
             }
             init = true;
 
+            calculateGridSize(panelWidth, panelHeight);
+
+            controller = new Controller(new Controller.ModelFactory(modelType, gridSizeX, gridSizeY));
+            controller.getModel().putPattern(initialPattern.move(gridSizeX/2, gridSizeY/2));
+        }
+
+        private void calculateGridSize(final int panelWidth, final int panelHeight) {
             gridOffsetX = scaleFactor;
             gridOffsetY = scaleFactor;
             gridSizeX = (panelWidth-gridOffsetX-2)/scaleFactor;
             gridSizeY = (panelHeight-gridOffsetY-2)/scaleFactor;
             gridWidth = gridSizeX*scaleFactor;
             gridHeight = gridSizeY*scaleFactor;
+        }
 
-            // TDOD calculate gridsize and canvas size
-            controller = new Controller(new Controller.ModelFactory(modelType, gridSizeX, gridSizeY));
-            controller.getModel().putPattern(initialPattern.move(gridSizeX/2, gridSizeY/2));
-       }
+        public void handleResize(final int panelWidth, final int panelHeight) {
+            if(!init){
+                return;
+            }
+            if(!Controller.isFixedModelType(modelType)){
+                calculateGridSize(panelWidth, panelHeight);
+            }
+        }
 
         public void paint(final Graphics g) {
             paintGrid(g);
@@ -153,7 +184,7 @@ public class SwingMain {
                 g.setColor(gridColor);
                 g.drawLine(gridOffsetX, y, gridWidth + gridOffsetX, y);
             }
-            if(modelType == Model.MODEL_TYPE.FIXED_MIRROR || modelType == Model.MODEL_TYPE.FIXED_CUT){
+            if(Controller.isFixedModelType(modelType)){
                 g.setColor(gridBoundaryColor);
                 g.drawRect(gridOffsetX, gridOffsetY, gridWidth, gridHeight);
             }
