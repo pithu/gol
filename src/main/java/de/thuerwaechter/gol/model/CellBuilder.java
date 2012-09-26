@@ -17,49 +17,42 @@
 package de.thuerwaechter.gol.model;
 
 public class CellBuilder {
-    private Cell.CELL_STATE cellState;
-    private boolean changed;
-    private Point point;
+    private CellState cellState;
+    private CellPoint point;
 
     public CellBuilder setCell(final Cell _cell) {
         cellState = _cell.getCellState();
-        changed = _cell.isChanged();
         point = _cell.getPoint();
         return this;
     }
 
-    public CellBuilder setCellState(final Cell.CELL_STATE _cellState) {
+    public CellBuilder setCellState(final CellState _cellState) {
         cellState = _cellState;
         return this;
     }
 
-    public CellBuilder setChanged(final boolean _changed) {
-        changed = _changed;
-        return this;
-    }
-
-    public CellBuilder setPoint(final Point _point) {
+    public CellBuilder setPoint(final CellPoint _point) {
         point = _point;
         return this;
     }
 
     public Cell createCell() {
-        return new Cell(cellState, changed, point);
+        return new Cell(cellState, point);
     }
 
-    public static Cell newCell(final Point point){
-        return new Cell(Cell.CELL_STATE.ALIVE, true, point);
+    public static Cell newCell(final CellPoint point){
+        return new Cell(CellState.ALIVE_CHANGED, point);
     }
 
     public static Cell newCell(final int x, final int y) {
-        return new Cell(Cell.CELL_STATE.ALIVE, true, new Point(x,y));
+        return newCell(new CellPoint(x,y));
     }
 
-    public static Cell newDeadCell(final Point point){
-        return new Cell(Cell.CELL_STATE.DEAD, true, point);
+    public static Cell newDeadCell(final CellPoint point){
+        return new Cell(CellState.DEAD_CHANGED, point);
     }
 
-    public static Cell newDeadUnchangedCell(final Point point) {
-        return new Cell(Cell.CELL_STATE.DEAD, false, point);
+    public static Cell newDeadUnchangedCell(final CellPoint point) {
+        return new Cell(CellState.DEAD_UNCHANGED, point);
     }
 }

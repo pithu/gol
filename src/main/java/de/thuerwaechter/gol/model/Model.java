@@ -27,28 +27,28 @@ import java.util.Map;
  * @author <a href="pts@thuerwaechter.de">pithu</a>
  */
 public class Model {
-    public static enum MODEL_TYPE {INFINITE, FIXED_CUT, FIXED_MIRROR }
+    public static enum ModelType {INFINITE, FIXED_CUT, FIXED_MIRROR }
 
-    private final Map<Point, Cell> cells = new HashMap<Point, Cell>();
+    private final Map<CellPoint, Cell> cells = new HashMap<CellPoint, Cell>();
     private final ModelMappingStrategy borderStrategy;
-    private final MODEL_TYPE  modelType;
+    private final ModelType modelType;
     private boolean changed = false;
 
-    private Model(final ModelMappingStrategy borderStrategy, final MODEL_TYPE modelType) {
+    private Model(final ModelMappingStrategy borderStrategy, final ModelType modelType) {
         this.borderStrategy = borderStrategy;
         this.modelType = modelType;
     }
 
     public static Model newInfiniteModel(){
-        return new Model(new InfiniteModelStrategy(), MODEL_TYPE.INFINITE);
+        return new Model(new InfiniteModelStrategy(), ModelType.INFINITE);
     }
 
     public static Model newFixedSizeCutEdgesModel(final int x, final int y){
-        return new Model(new FixSizeCutEdgesStrategy(x,y), MODEL_TYPE.FIXED_CUT);
+        return new Model(new FixSizeCutEdgesStrategy(x,y), ModelType.FIXED_CUT);
     }
 
     public static Model newFixedSizeMirrorEdgesModel(final int x, final int y){
-        return new Model(new FixSizeMirrorEdgesStrategy(x,y), MODEL_TYPE.FIXED_MIRROR);
+        return new Model(new FixSizeMirrorEdgesStrategy(x,y), ModelType.FIXED_MIRROR);
     }
 
     public Model putPattern(final Pattern pattern) {
@@ -84,7 +84,7 @@ public class Model {
                 if(x==0 && y==0){
                     continue;
                 }
-                final Point p = cell.getPoint().plusXY(x, y);
+                final CellPoint p = cell.getPoint().plusXY(x, y);
                 final Cell c = getCell(p);
                 if(c!=null){
                     neighbours.add(c);
@@ -98,7 +98,7 @@ public class Model {
         if(cell.isChanged()){
             changed = true;
         }
-        final Point point = borderStrategy.mapPoint(cell.getPoint());
+        final CellPoint point = borderStrategy.mapPoint(cell.getPoint());
         if(point == null){
             return;
         } else {
@@ -115,11 +115,11 @@ public class Model {
     }
 
     public Cell getCell(final int x, final int y) {
-        return getCell(new Point(x,y));
+        return getCell(new CellPoint(x,y));
     }
 
-    public Cell getCell(final Point p) {
-        final Point point = borderStrategy.mapPoint(p);
+    public Cell getCell(final CellPoint p) {
+        final CellPoint point = borderStrategy.mapPoint(p);
         if(point == null){
             return null;
         } else {
@@ -132,7 +132,7 @@ public class Model {
         }
     }
 
-    public MODEL_TYPE getModelType() {
+    public ModelType getModelType() {
         return modelType;
     }
 
@@ -151,11 +151,11 @@ public class Model {
     }
 
     protected static interface ModelMappingStrategy {
-        Point mapPoint(final Point p);
+        CellPoint mapPoint(final CellPoint p);
     }
 
     protected static class InfiniteModelStrategy implements ModelMappingStrategy {
-        public Point mapPoint(final Point p) {
+        public CellPoint mapPoint(final CellPoint p) {
             return p;
         }
     }
@@ -168,10 +168,10 @@ public class Model {
             maxY = _maxY;
         }
 
-        public Point mapPoint(final Point p) {
+        public CellPoint mapPoint(final CellPoint p) {
             final int x = clip(p.getX(), maxX);
             final int y = clip(p.getY(), maxY);
-            return x != p.getX() || y != p.getY() ? new Point(x,y) : p;
+            return x != p.getX() || y != p.getY() ? new CellPoint(x,y) : p;
         }
 
         private int clip(final int value, final int max){
@@ -192,7 +192,7 @@ public class Model {
             maxY = _maxY;
         }
 
-        public Point mapPoint(final Point p) {
+        public CellPoint mapPoint(final CellPoint p) {
             if(p.getX() >= maxX || p.getY() >= maxY ||p.getX() < 0 || p.getY() < 0 ){
                 return null;
             }

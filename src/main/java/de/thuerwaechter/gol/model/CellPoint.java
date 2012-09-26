@@ -17,12 +17,12 @@
 package de.thuerwaechter.gol.model;
 
 /** @author <a href="pts@thuerwaechter.de">pithu</a> */
-public class Point {
+public class CellPoint {
     private final int x;
     private final int y;
     private final int hashCode;
 
-    public Point(final int x, final int y) {
+    public CellPoint(final int x, final int y) {
         this.x = x;
         this.y = y;
         this.hashCode = _hashCode();
@@ -36,16 +36,16 @@ public class Point {
         return y;
     }
 
-    public Point plusX(final int diffX){
-        return new Point(x+diffX, y);
+    public CellPoint plusX(final int diffX){
+        return new CellPoint(x+diffX, y);
     }
 
-    public Point plusY(final int diffY){
-        return new Point(x, y+diffY);
+    public CellPoint plusY(final int diffY){
+        return new CellPoint(x, y+diffY);
     }
 
-    public Point plusXY(final int diffX, final int diffY) {
-        return new Point(x+diffX, y+diffY);
+    public CellPoint plusXY(final int diffX, final int diffY) {
+        return new CellPoint(x+diffX, y+diffY);
     }
 
     @Override
@@ -53,11 +53,11 @@ public class Point {
         if (this == other) {
             return true;
         }
-        if (!(other instanceof Point)) {
+        if (!(other instanceof CellPoint)) {
             return false;
         }
 
-        final Point point = (Point) other;
+        final CellPoint point = (CellPoint) other;
 
         if (x != point.x) {
             return false;

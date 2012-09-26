@@ -20,56 +20,49 @@ package de.thuerwaechter.gol.model;
  * @author <a href="pts@thuerwaechter.de">pithu</a>
  */
 public class Cell {
-    public enum CELL_STATE {DEAD, ALIVE}
 
-    private final CELL_STATE cellState;
-    private final boolean changed;
-    private final Point point;
+    private final CellState cellState;
+    private final CellPoint point;
 
-    protected Cell(final CELL_STATE alive, final boolean changed, final Point point) {
+    public Cell(final CellState alive, final CellPoint point) {
         this.cellState = alive;
-        this.changed = changed;
         this.point = point;
     }
 
-    public Point getPoint() {
-        return point;
-    }
-
-    public boolean isAlive() {
-        return cellState == CELL_STATE.ALIVE;
-    }
-
-    public CELL_STATE getCellState() {
-        return cellState;
-    }
-
-    public boolean isChanged() {
-        return changed;
-    }
-
-    public Cell newSuccessorCell(final CELL_STATE nextState){
+    public Cell newSuccessorCell(final CellState nextState){
         return new CellBuilder()
-                .setChanged(cellState != nextState)
                 .setCellState(nextState)
                 .setPoint(point).createCell();
     }
 
+    public CellPoint getPoint() {
+        return point;
+    }
+
+    public CellState getCellState() {
+        return cellState;
+    }
+
+    public boolean isAlive() {
+        return cellState.isAlive();
+    }
+
+    public boolean isChanged() {
+        return cellState.isChanged();
+    }
+
     @Override
-    public boolean equals(final Object other) {
-        if (this == other) {
+    public boolean equals(final Object o) {
+        if (this == o) {
             return true;
         }
-        if (!(other instanceof Cell)) {
+        if (!(o instanceof Cell)) {
             return false;
         }
 
-        final Cell cell = (Cell) other;
+        final Cell cell = (Cell) o;
 
         if (cellState != cell.cellState) {
-            return false;
-        }
-        if (changed != cell.changed) {
             return false;
         }
         if (point != null ? !point.equals(cell.point) : cell.point != null) {
@@ -81,8 +74,7 @@ public class Cell {
 
     @Override
     public int hashCode() {
-        int result = (cellState == CELL_STATE.ALIVE ? 1 : 0);
-        result = 31 * result + (changed ? 1 : 0);
+        int result = cellState != null ? cellState.hashCode() : 0;
         result = 31 * result + (point != null ? point.hashCode() : 0);
         return result;
     }
@@ -91,9 +83,7 @@ public class Cell {
     public String toString() {
         return "Cell{" +
                 "cellState=" + cellState +
-                ", changed=" + changed +
                 ", point=" + point +
                 '}';
     }
-
- }
+}

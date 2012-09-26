@@ -16,24 +16,26 @@
 
 package de.thuerwaechter.gol.model;
 
-import org.junit.Test;
-
-import static junit.framework.Assert.*;
-
 /** @author <a href="pts@thuerwaechter.de">pithu</a> */
-public class PointTest {
-    @Test
-    public void testGetterEqualsAndHashCode(){
-        CellPoint p1 = new CellPoint(10,20);
-        assertEquals(p1.getX(), 10);
-        assertEquals(p1.getY(), 20);
+public enum CellState {
+    DEAD_CHANGED(false, true),
+    DEAD_UNCHANGED(false, false),
+    ALIVE_CHANGED(true, true),
+    ALIVE_UNCHANGED(true, false);
 
-        CellPoint p2 = new CellPoint(10,20);
-        assertEquals(p1, p2);
-        assertTrue(p1.hashCode() == p2.hashCode());
+    private final boolean alive;
+    private final boolean changed;
 
-        CellPoint p3 = new CellPoint(20,10);
-        assertFalse(p1.equals(p3));
-        assertFalse(p1.hashCode() == p3.hashCode());
+    CellState(final boolean alive, final boolean changed) {
+        this.alive = alive;
+        this.changed = changed;
+    }
+
+    public boolean isAlive() {
+        return alive;
+    }
+
+    public boolean isChanged() {
+        return changed;
     }
 }

@@ -88,7 +88,7 @@ public class Pattern {
         for(String line : lines){
             for(char c : line.toCharArray()) {
                 if(c=='X'){
-                    newCells.add(CellBuilder.newCell(new Point(x,y)));
+                    newCells.add(CellBuilder.newCell(new CellPoint(x,y)));
                 }
                 x++;
             }

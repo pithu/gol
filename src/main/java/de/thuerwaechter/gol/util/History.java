@@ -14,26 +14,29 @@
  *    limitations under the License.
  */
 
-package de.thuerwaechter.gol.model;
+package de.thuerwaechter.gol.util;
 
-import org.junit.Test;
-
-import static junit.framework.Assert.*;
+import java.util.ArrayList;
 
 /** @author <a href="pts@thuerwaechter.de">pithu</a> */
-public class PointTest {
-    @Test
-    public void testGetterEqualsAndHashCode(){
-        CellPoint p1 = new CellPoint(10,20);
-        assertEquals(p1.getX(), 10);
-        assertEquals(p1.getY(), 20);
+public class History<T>{
+    private final int size;
+    private final ArrayList<T> queue = new ArrayList<T>();
 
-        CellPoint p2 = new CellPoint(10,20);
-        assertEquals(p1, p2);
-        assertTrue(p1.hashCode() == p2.hashCode());
-
-        CellPoint p3 = new CellPoint(20,10);
-        assertFalse(p1.equals(p3));
-        assertFalse(p1.hashCode() == p3.hashCode());
+    public History(final int size) {
+        this.size = size;
     }
+
+    public synchronized void add(T value){
+        queue.add(value);
+        if(queue.size()>size){
+            queue.remove(0);
+        }
+    }
+
+    public synchronized T get(int generation){
+        int idx = queue.size()-1-generation;
+        return queue.get(idx);
+    }
+
 }

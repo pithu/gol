@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import de.thuerwaechter.gol.model.Cell;
+import de.thuerwaechter.gol.model.CellState;
 import de.thuerwaechter.gol.model.Model;
 
 /**
@@ -62,21 +63,21 @@ public class Controller {
         final Model successorModel = modelFactory.get().newModel();
         Collection<Cell> cells = currentModel.getCells();
         for(Cell cell : cells){
-            final Cell.CELL_STATE nextCellState = cellSuccessorStateStrategy.calculateSuccessorState(
+            final CellState nextCellState = cellSuccessorStateStrategy.calculateSuccessorState(
                     cell, currentModel.getEightNeighbours(cell));
-            successorModel.putCell(cell.newSuccessorCell(nextCellState));
+            successorModel.putCell(new Cell(nextCellState, cell.getPoint()));
         }
         successorModel.populateNeighbours();
         currentModel = successorModel;
         nrOfGeneration++;
     }
 
-    public static boolean isFixedModelType(Model.MODEL_TYPE modelType){
-        return modelType == Model.MODEL_TYPE.FIXED_MIRROR || modelType == Model.MODEL_TYPE.FIXED_CUT;
+    public static boolean isFixedModelType(Model.ModelType modelType){
+        return modelType == Model.ModelType.FIXED_MIRROR || modelType == Model.ModelType.FIXED_CUT;
     }
 
     private static interface CellSuccessorStateStrategy {
-        Cell.CELL_STATE calculateSuccessorState(Cell cell, Collection<Cell> neighbours);
+        CellState calculateSuccessorState(Cell cell, Collection<Cell> neighbours);
     }
 
     private static class ConwaysCellSuccessorStateStrategy implements CellSuccessorStateStrategy {
@@ -88,7 +89,7 @@ public class Controller {
             this.deadValues = new HashSet<Integer>(Arrays.asList(deadValues));
         }
 
-        public Cell.CELL_STATE calculateSuccessorState(final Cell cell, final Collection<Cell> neighbours) {
+        public CellState calculateSuccessorState(final Cell cell, final Collection<Cell> neighbours) {
             int numberOfAliveNeighbours=0;
             for(Cell neighbour : neighbours){
                 if(neighbour.isAlive()){
@@ -97,47 +98,47 @@ public class Controller {
             }
             if(cell.isAlive()){
                 if(aliveValues.contains(numberOfAliveNeighbours)){
-                    return Cell.CELL_STATE.ALIVE;
+                    return CellState.ALIVE_UNCHANGED;
                 } else {
-                    return Cell.CELL_STATE.DEAD;
+                    return CellState.DEAD_CHANGED;
                 }
             }
            else {
                 if(deadValues.contains(numberOfAliveNeighbours)){
-                    return Cell.CELL_STATE.ALIVE;
+                    return CellState.ALIVE_CHANGED;
                 } else {
-                    return Cell.CELL_STATE.DEAD;
+                    return CellState.DEAD_UNCHANGED;
                 }
             }
         }
     }
 
     public static class ModelFactory{
-        private final Model.MODEL_TYPE modelType;
+        private final Model.ModelType modelType;
         private final int sizeX, sizeY;
 
-        public ModelFactory(final Model.MODEL_TYPE modelType, final int sizeX, final int sizeY) {
+        public ModelFactory(final Model.ModelType modelType, final int sizeX, final int sizeY) {
             this.modelType = modelType;
             this.sizeX = sizeX;
             this.sizeY = sizeY;
         }
 
         public static ModelFactory newInfiniteModelFactory(){
-            return new ModelFactory(Model.MODEL_TYPE.INFINITE, 0, 0);
+            return new ModelFactory(Model.ModelType.INFINITE, 0, 0);
         }
 
         public static ModelFactory newFixedCutModelFactory(final int x, final int y){
-            return new ModelFactory(Model.MODEL_TYPE.FIXED_CUT, x, y);
+            return new ModelFactory(Model.ModelType.FIXED_CUT, x, y);
         }
 
         public static ModelFactory newFixedMirrorModelFactory(final int x, final int y){
-            return new ModelFactory(Model.MODEL_TYPE.FIXED_MIRROR, x, y);
+            return new ModelFactory(Model.ModelType.FIXED_MIRROR, x, y);
         }
 
         public Model newModel(){
-            if(modelType == Model.MODEL_TYPE.INFINITE){
+            if(modelType == Model.ModelType.INFINITE){
                 return Model.newInfiniteModel();
-            } else if (modelType == Model.MODEL_TYPE.FIXED_CUT){
+            } else if (modelType == Model.ModelType.FIXED_CUT){
                 return Model.newFixedSizeCutEdgesModel(sizeX, sizeY);
             } else {
                 return Model.newFixedSizeMirrorEdgesModel(sizeX, sizeY);
