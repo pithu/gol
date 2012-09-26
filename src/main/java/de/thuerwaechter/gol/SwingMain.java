@@ -23,6 +23,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import javax.swing.*;
 
 import de.thuerwaechter.gol.model.Cell;
@@ -93,21 +94,28 @@ public class SwingMain {
                 }
             });
 
+            addMouseWheelListener(new MouseAdapter() {
+                @Override
+                public void mouseWheelMoved(final MouseWheelEvent e) {
+                    handleWheelMoved(e);
+                }
+            });
+
             addComponentListener(new ComponentListener() {
                 public void componentResized(ComponentEvent arg0) {
                     handleFrameResize();
                 }
 
-                public void componentMoved(ComponentEvent arg0) {
-                }
+                public void componentMoved(ComponentEvent arg0) { }
 
-                public void componentShown(ComponentEvent arg0) {
-                }
+                public void componentShown(ComponentEvent arg0) { }
 
-                public void componentHidden(ComponentEvent arg0) {
-                }
+                public void componentHidden(ComponentEvent arg0) { }
             });
+        }
 
+        private void handleWheelMoved(final MouseWheelEvent e) {
+            swingController.handleMouseWheelEvent(e.getWheelRotation() * e.getScrollAmount());
         }
 
         private void handleMouseDragged(final MouseEvent e) {
@@ -214,6 +222,16 @@ public class SwingMain {
             moveOriginOffset(diffX, diffY);
         }
 
+        public void handleMouseWheelEvent(final int scrollAmount) {
+           if(scrollAmount>0){
+               scaleFactor++;
+           } else {
+               if(scaleFactor>2){
+                   scaleFactor--;
+               }
+           }
+        }
+
         public void paint(final Graphics g) {
             paintModel(g);
             paintGrid(g);
@@ -275,8 +293,7 @@ public class SwingMain {
             }
             return false;
         }
-
-    }
+     }
 
     private static class Dot{
         private int originOffsetX, originOffsetY;
