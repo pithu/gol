@@ -23,31 +23,60 @@ import static junit.framework.Assert.*;
 /** @author <a href="pts@thuerwaechter.de">pithu</a> */
 public class CellTest {
     @Test
+    public void testBuilder(){
+        Cell c1 = Cell.newCell(42, 24);
+        assertTrue(c1.isAlive());
+        assertTrue(c1.isChanged());
+        assertEquals(new CellPoint(42,24), c1.getPoint());
+
+        c1 = Cell.newDeadCell(42, 24);
+        assertFalse(c1.isAlive());
+        assertTrue(c1.isChanged());
+        assertEquals(new CellPoint(42,24), c1.getPoint());
+
+        c1 = Cell.newDeadUnchangedCell(42, 24);
+        assertFalse(c1.isAlive());
+        assertFalse(c1.isChanged());
+        assertEquals(new CellPoint(42,24), c1.getPoint());
+
+        c1 = new Cell(new CellPoint(42, 24), CellState.ALIVE_UNCHANGED);
+        assertTrue(c1.isAlive());
+        assertFalse(c1.isChanged());
+        assertEquals(new CellPoint(42,24), c1.getPoint());
+    }
+
+    @Test
     public void testEqualsAndHashCode() throws Exception {
-        Cell c1 = CellBuilder.newCell(new CellPoint(42, 24));
-        Cell c2 = CellBuilder.newCell(new CellPoint(42, 24));
+        Cell c1 = Cell.newCell(42, 24);
+        Cell c2 = Cell.newCell(42, 24);
         assertNotSame(c1, c2);
         assertEquals(c1, c2);
         assertTrue(c1.hashCode() == c2.hashCode());
 
-        c1 = CellBuilder.newCell(new CellPoint(42, 24));
-        c2 = CellBuilder.newCell(new CellPoint(42, 42));
+        c1 = Cell.newCell(42, 24);
+        c2 = Cell.newCell(42, 42);
         assertFalse(c1.equals(c2));
         assertFalse(c1.hashCode() == c2.hashCode());
 
-        c1 = CellBuilder.newCell(new CellPoint(42, 24));
-        c2 = CellBuilder.newDeadCell(new CellPoint(42, 24));
+        c1 = Cell.newCell(42, 24);
+        c2 = Cell.newDeadCell(42, 24);
         assertFalse(c1.equals(c2));
         assertFalse(c1.hashCode() == c2.hashCode());
 
-        c1 = new CellBuilder()
-                .setCellState(CellState.ALIVE_CHANGED)
-                .setPoint(new CellPoint(42, 24)).createCell();
-        c1 = new CellBuilder()
-                .setCellState(CellState.ALIVE_CHANGED)
-                .setPoint(new CellPoint(42, 24)).createCell();
+        c1 = Cell.newCell(42, 24);
+        c2 = Cell.newDeadUnchangedCell(42, 24);
         assertFalse(c1.equals(c2));
         assertFalse(c1.hashCode() == c2.hashCode());
+
+        c1 = new Cell(new CellPoint(42, 24), CellState.ALIVE_CHANGED);
+        c2 = new Cell(new CellPoint(42, 24), CellState.ALIVE_UNCHANGED);
+        assertFalse(c1.equals(c2));
+        assertFalse(c1.hashCode() == c2.hashCode());
+
+        c1 = new Cell(new CellPoint(42, 24), CellState.ALIVE_CHANGED);
+        c2 = new Cell(new CellPoint(42, 24), CellState.ALIVE_CHANGED);
+        assertEquals(c1, c2);
+        assertTrue(c1.hashCode() == c2.hashCode());
     }
 
 }

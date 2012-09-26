@@ -64,31 +64,31 @@ public class Pattern {
             "X------X"
             ));
 
-    private final Set<Cell> cells;
+    private final Set<CellPoint> cells;
 
-    public Pattern(final Set<Cell> __cells) {
+    public Pattern(final Set<CellPoint> __cells) {
         cells = __cells;
     }
 
-    public Set<Cell> getCells() {
-        return new HashSet<Cell>(cells);
+    public Set<CellPoint> getCells() {
+        return new HashSet<CellPoint>(cells);
     }
 
     public Pattern move(final int x, final int y){
-        Set<Cell> movedCells = new HashSet<Cell>();
-        for(Cell cell: cells){
-            movedCells.add(CellBuilder.newCell(cell.getPoint().plusXY(x, y)));
+        Set<CellPoint> movedCells = new HashSet<CellPoint>();
+        for(CellPoint cellPoint: cells){
+            movedCells.add(cellPoint.plusXY(x, y));
         }
         return new Pattern(movedCells);
     }
 
     public static Pattern buildPattern(List<String> lines){
-        Set<Cell> newCells = new HashSet<Cell>();
+        Set<CellPoint> newCells = new HashSet<CellPoint>();
         int x = 0, y = 0;
         for(String line : lines){
             for(char c : line.toCharArray()) {
                 if(c=='X'){
-                    newCells.add(CellBuilder.newCell(new CellPoint(x,y)));
+                    newCells.add(new CellPoint(x,y));
                 }
                 x++;
             }

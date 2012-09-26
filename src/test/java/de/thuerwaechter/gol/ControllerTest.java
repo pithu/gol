@@ -18,15 +18,13 @@ package de.thuerwaechter.gol;
 
 import java.util.Arrays;
 
-import de.thuerwaechter.gol.model.CellBuilder;
+import de.thuerwaechter.gol.model.Cell;
 import de.thuerwaechter.gol.model.CellPoint;
 import de.thuerwaechter.gol.model.CellState;
 import de.thuerwaechter.gol.model.Pattern;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.*;
 
 /**
  * @author <a href="pts@thuerwaechter.de">pithu</a>
@@ -37,17 +35,17 @@ public class ControllerTest {
         Controller controller = new Controller(Controller.ModelFactory.newInfiniteModelFactory());
         controller.getModel().putPattern(Pattern.buildPattern(Arrays.asList("----","XXX")));
 
-        assertEquals(15, controller.getModel().getCells().size());
+        assertEquals(15, controller.getModel().getCellMap().size());
         assertTrue(controller.modelHasNextGeneration());
 
         controller.processNextGeneration();
         assertTrue(controller.modelHasNextGeneration());
-        assertEquals(15, controller.getModel().getCells().size());
-        assertEquals(controller.getModel().getCell(0, 0), CellBuilder.newDeadUnchangedCell(new CellPoint(0, 0)));
-        assertEquals(controller.getModel().getCell(0, 1), CellBuilder.newDeadCell(new CellPoint(0, 1)));
-        assertEquals(controller.getModel().getCell(1,0), CellBuilder.newCell(new CellPoint(1, 0)));
-        assertEquals(controller.getModel().getCell(1,1),
-                new CellBuilder().setPoint(new CellPoint(1,1)).setCellState(CellState.ALIVE_UNCHANGED).createCell());
+        assertEquals(15, controller.getModel().getCellMap().size());
+        assertEquals(controller.getModel().getCell(0, 0), Cell.newDeadUnchangedCell(0, 0));
+        assertEquals(controller.getModel().getCell(0, 1), Cell.newDeadCell(0, 1));
+        assertEquals(controller.getModel().getCell(1,0), Cell.newCell(1, 0));
+        assertEquals(controller.getModel().getCell(1, 1),
+                new Cell(new CellPoint(1, 1), CellState.ALIVE_UNCHANGED));
     }
 
     @Test
@@ -55,14 +53,29 @@ public class ControllerTest {
         Controller controller = new Controller(Controller.ModelFactory.newInfiniteModelFactory());
         controller.getModel().putPattern(Pattern.buildPattern(Arrays.asList("XX","XX")));
 
-        assertEquals(16, controller.getModel().getCells().size());
+        assertEquals(16, controller.getModel().getCellMap().size());
         assertTrue(controller.modelHasNextGeneration());
 
         controller.processNextGeneration();
         assertFalse(controller.modelHasNextGeneration());
-        assertEquals(16, controller.getModel().getCells().size());
-        assertEquals(controller.getModel().getCell(3, 3), CellBuilder.newDeadUnchangedCell(new CellPoint(3, 3)));
+        assertEquals(16, controller.getModel().getCellMap().size());
+        assertEquals(controller.getModel().getCell(3, 3), Cell.newDeadUnchangedCell(3, 3));
         assertEquals(controller.getModel().getCell(1,1),
-                new CellBuilder().setPoint(new CellPoint(1,1)).setCellState(CellState.ALIVE_UNCHANGED).createCell());
+                new Cell(new CellPoint(1, 1),CellState.ALIVE_UNCHANGED));
     }
+
+    @Test
+    public void testProcessGeneration54(){
+        Controller controller = new Controller(Controller.ModelFactory.newInfiniteModelFactory());
+        controller.getModel().putPattern(Pattern.GENERATION_54);
+
+        while(controller.modelHasNextGeneration()){
+            controller.processNextGeneration();
+            if(controller.getNrOfGeneration()>55){
+                fail("nr. of generation exceeded");
+            }
+        }
+        assertEquals(55, controller.getNrOfGeneration());
+    }
+
 }

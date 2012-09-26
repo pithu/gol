@@ -215,7 +215,7 @@ public class SwingMain {
 
         public void paintModel(Graphics g){
             final Dot dot = new Dot(originOffsetX, originOffsetY, scaleFactor);
-            for(Cell cell : controller.getModel().getCells()){
+            for(Cell cell : controller.getModel().getCellMap()){
                 if(cell.isAlive()){
                     if(cell.isChanged()){
                         dot.setColor(aliveChanged);

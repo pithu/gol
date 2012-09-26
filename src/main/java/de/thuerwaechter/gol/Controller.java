@@ -61,11 +61,11 @@ public class Controller {
 
     public void processNextGeneration() {
         final Model successorModel = modelFactory.get().newModel();
-        Collection<Cell> cells = currentModel.getCells();
+        Collection<Cell> cells = currentModel.getCellMap();
         for(Cell cell : cells){
             final CellState nextCellState = cellSuccessorStateStrategy.calculateSuccessorState(
                     cell, currentModel.getEightNeighbours(cell));
-            successorModel.putCell(new Cell(nextCellState, cell.getPoint()));
+            successorModel.putCell(cell.getPoint(), nextCellState);
         }
         successorModel.populateNeighbours();
         currentModel = successorModel;
@@ -125,14 +125,6 @@ public class Controller {
 
         public static ModelFactory newInfiniteModelFactory(){
             return new ModelFactory(Model.ModelType.INFINITE, 0, 0);
-        }
-
-        public static ModelFactory newFixedCutModelFactory(final int x, final int y){
-            return new ModelFactory(Model.ModelType.FIXED_CUT, x, y);
-        }
-
-        public static ModelFactory newFixedMirrorModelFactory(final int x, final int y){
-            return new ModelFactory(Model.ModelType.FIXED_MIRROR, x, y);
         }
 
         public Model newModel(){

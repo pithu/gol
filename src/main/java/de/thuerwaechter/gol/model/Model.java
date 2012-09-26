@@ -19,7 +19,6 @@ package de.thuerwaechter.gol.model;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +28,7 @@ import java.util.Map;
 public class Model {
     public static enum ModelType {INFINITE, FIXED_CUT, FIXED_MIRROR }
 
-    private final Map<CellPoint, Cell> cells = new HashMap<CellPoint, Cell>();
+    private final Map<CellPoint, CellState> cellMap = new HashMap<CellPoint, CellState>();
     private final ModelMappingStrategy borderStrategy;
     private final ModelType modelType;
     private boolean changed = false;
@@ -52,26 +51,30 @@ public class Model {
     }
 
     public Model putPattern(final Pattern pattern) {
-        for(Cell cell : pattern.getCells()){
-            putCell(cell);
+        for(CellPoint cellPoint : pattern.getCells()){
+            putCell(cellPoint, CellState.ALIVE_CHANGED);
         }
         populateNeighbours();
         return this;
     }
 
-    public Collection<Cell> getCells() {
-        return cells.values();
+    public Collection<Cell> getCellMap() {
+        List<Cell> cellList = new ArrayList<Cell>();
+        for(Map.Entry<CellPoint, CellState> entry : cellMap.entrySet()){
+            cellList.add(new Cell(entry.getKey(), entry.getValue()));
+        }
+        return cellList;
     }
 
     public void populateNeighbours() {
-        final Collection<Cell> cellValues = new HashSet<Cell>(cells.values());
+        final Collection<Cell> cellValues = getCellMap();
         for(Cell cell : cellValues){
             if(!cell.isAlive()){
                 continue;
             }
             for(Cell neighbour : getEightNeighbours(cell)){
-                if(cells.get(neighbour.getPoint()) == null){
-                    cells.put(neighbour.getPoint(), neighbour);
+                if(cellMap.get(neighbour.getPoint()) == null){
+                    cellMap.put(neighbour.getPoint(), neighbour.getCellState());
                 }
             }
         }
@@ -94,22 +97,18 @@ public class Model {
         return neighbours;
     }
 
-    public void putCell(final Cell cell) {
-        if(cell.isChanged()){
+    public void putCell(final CellPoint cellPoint, final CellState cellState) {
+        if(cellState.isChanged()){
             changed = true;
         }
-        final CellPoint point = borderStrategy.mapPoint(cell.getPoint());
+        final CellPoint point = borderStrategy.mapPoint(cellPoint);
         if(point == null){
             return;
         } else {
-            if(cell.isAlive() || cell.isChanged()){
-                if(point.equals(cell.getPoint())){
-                    cells.put(point, cell);
-                } else {
-                    cells.put(point, new CellBuilder().setCell(cell).setPoint(point).createCell());
-                }
+            if(cellState.isAlive() || cellState.isChanged()){
+                cellMap.put(point, cellState);
             } else {
-                cells.remove(point);
+                cellMap.remove(point);
             }
         }
     }
@@ -123,11 +122,11 @@ public class Model {
         if(point == null){
             return null;
         } else {
-            final Cell cell = cells.get(point);
-            if(cell == null){
-                return CellBuilder.newDeadUnchangedCell(point);
+            final CellState cellState = cellMap.get(point);
+            if(cellState == null){
+                return new Cell(point, CellState.DEAD_UNCHANGED);
             } else {
-                return cell;
+                return new Cell(point, cellState);
             }
         }
     }
@@ -143,7 +142,7 @@ public class Model {
     @Override
     public String toString() {
         return "Model{" +
-                "cells=" + cells +
+                "cells=" + cellMap +
                 ", borderStrategy=" + borderStrategy +
                 ", modelType=" + modelType +
                 ", changed=" + changed +

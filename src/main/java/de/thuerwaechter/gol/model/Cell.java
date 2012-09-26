@@ -20,19 +20,24 @@ package de.thuerwaechter.gol.model;
  * @author <a href="pts@thuerwaechter.de">pithu</a>
  */
 public class Cell {
-
     private final CellState cellState;
     private final CellPoint point;
 
-    public Cell(final CellState alive, final CellPoint point) {
-        this.cellState = alive;
+    public Cell(final CellPoint point, final CellState cellState) {
+        this.cellState = cellState;
         this.point = point;
     }
 
-    public Cell newSuccessorCell(final CellState nextState){
-        return new CellBuilder()
-                .setCellState(nextState)
-                .setPoint(point).createCell();
+    public static Cell newCell(final int x, final int y){
+        return new Cell(new CellPoint(x,y), CellState.ALIVE_CHANGED);
+    }
+
+    public static Cell newDeadCell(final int x, final int y){
+        return new Cell(new CellPoint(x,y), CellState.DEAD_CHANGED);
+    }
+
+    public static Cell newDeadUnchangedCell(final int x, final int y){
+        return new Cell(new CellPoint(x,y), CellState.DEAD_UNCHANGED);
     }
 
     public CellPoint getPoint() {
