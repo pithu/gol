@@ -39,7 +39,7 @@ public class SwingMain {
     private static final int CANVAS_SIZE_Y = 500;
 
     private static final Pattern initialPattern = Pattern.TEST;
-    private static final Model.ModelType modelType = Model.ModelType.FIXED_CUT;
+    private static final Model.ModelType modelType = Model.ModelType.INFINITE;
     private static int scaleFactor = 10;
 
     private static Color gridColor = Color.GRAY;
@@ -65,22 +65,25 @@ public class SwingMain {
         f.setSize(CANVAS_SIZE_X, CANVAS_SIZE_Y);
         f.setLocation(30, 30);
         f.setVisible(true);
-        f.add(new ControllerPanel());
+        f.add(new MainPanel());
         System.out.println("Created GUI on EDT? " +
                 SwingUtilities.isEventDispatchThread());
     }
 
-    private static class ControllerPanel extends JPanel implements ActionListener {
+    private static class MainPanel extends JPanel implements ActionListener {
         private final SwingController swingController = new SwingController();
         private final Timer timer;
-        private SwingWorker<Void, Void> worker;
+        private Point lastMouseDraggedPoint;
 
-        public ControllerPanel() {
+        public MainPanel() {
             timer = new Timer(PAINT_SPEED, this);
             timer.start();
 
+            setBorder(BorderFactory.createLineBorder(gridBoundaryColor));
+
             addMouseListener(new MouseAdapter(){
                 public void mousePressed(MouseEvent e){
+                    lastMouseDraggedPoint = e.getPoint();
                 }
             });
 
@@ -108,7 +111,12 @@ public class SwingMain {
         }
 
         private void handleMouseDragged(final MouseEvent e) {
-            swingController.handleMouseDragged(e.getPoint());
+            if(lastMouseDraggedPoint==null){
+                lastMouseDraggedPoint = e.getPoint();
+            }
+            swingController.handleMouseDragged(
+                    e.getPoint().x - lastMouseDraggedPoint.x, e.getPoint().y - lastMouseDraggedPoint.y);
+            lastMouseDraggedPoint = e.getPoint();
         }
 
         private void handleFrameResize() {
@@ -132,7 +140,7 @@ public class SwingMain {
 
     private static class SwingController{
         private int gridOffsetX, gridOffsetY;
-        private int originOffsetNrOfDotsX, originOffsetNrOfDotsY;
+        private int draggedOriginOffsetX, draggedOriginOffsetY;
         private int originOffsetX, originOffsetY;
         private int gridNrOfDotsX, gridNrOfDotsY;
         private int modelNrOfDotsX, modelNrOfDotsY;
@@ -177,11 +185,18 @@ public class SwingMain {
         }
 
         private void calculateOriginOffset() {
-            originOffsetNrOfDotsX = (gridNrOfDotsX-modelNrOfDotsX)/2;
-            originOffsetNrOfDotsY = (gridNrOfDotsY-modelNrOfDotsY)/2;
+            final int originOffsetNrOfDotsX = (gridNrOfDotsX-modelNrOfDotsX)/2;
+            final int originOffsetNrOfDotsY = (gridNrOfDotsY-modelNrOfDotsY)/2;
 
-            originOffsetX = gridOffsetX + originOffsetNrOfDotsX*scaleFactor;
-            originOffsetY = gridOffsetY + originOffsetNrOfDotsY*scaleFactor;
+            draggedOriginOffsetX = originOffsetX = gridOffsetX + originOffsetNrOfDotsX*scaleFactor;
+            draggedOriginOffsetY = originOffsetY = gridOffsetY + originOffsetNrOfDotsY*scaleFactor;
+        }
+
+        private void moveOriginOffset(final int diffX, final int diffY) {
+            draggedOriginOffsetX += diffX;
+            draggedOriginOffsetY += diffY;
+            originOffsetX = (draggedOriginOffsetX / scaleFactor) * scaleFactor;
+            originOffsetY = (draggedOriginOffsetY / scaleFactor) * scaleFactor;
         }
 
         public void handleResize(final int panelWidth, final int panelHeight) {
@@ -192,9 +207,16 @@ public class SwingMain {
             calculateOriginOffset();
         }
 
+        public void handleMouseDragged(final int diffX, final int diffY) {
+            if(!init){
+                return;
+            }
+            moveOriginOffset(diffX, diffY);
+        }
+
         public void paint(final Graphics g) {
-            paintGrid(g);
             paintModel(g);
+            paintGrid(g);
         }
 
         private void paintGrid(final Graphics g) {
@@ -254,9 +276,6 @@ public class SwingMain {
             return false;
         }
 
-        public void handleMouseDragged(final Point point) {
-            //To change body of created methods use File | Settings | File Templates.
-        }
     }
 
     private static class Dot{
