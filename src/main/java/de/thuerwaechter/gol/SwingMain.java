@@ -135,11 +135,8 @@ public class SwingMain {
      }
 
     private static class SwingController{
-        private MathPoint gridOffset;
-        private MathPoint draggedOriginOffset;
-        private MathPoint originOffset;
-        private MathPoint gridNrOfDots;
-        private MathPoint modelNrOfDots;
+        private MathPoint gridOffset, originOffset, draggedOriginOffset;
+        private MathPoint gridNrOfDots, modelNrOfDots;
         private MathPoint gridRect, panelRect;
 
         private Controller controller;
