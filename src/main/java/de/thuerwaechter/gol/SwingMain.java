@@ -29,6 +29,7 @@ import javax.swing.*;
 import de.thuerwaechter.gol.model.Cell;
 import de.thuerwaechter.gol.model.Model;
 import de.thuerwaechter.gol.model.Pattern;
+import de.thuerwaechter.gol.util.MathPoint;
 
 /**
  * @author <a href="pts@thuerwaechter.de">pithu</a>
@@ -74,7 +75,7 @@ public class SwingMain {
     private static class MainPanel extends JPanel implements ActionListener {
         private final SwingController swingController = new SwingController();
         private final Timer timer;
-        private Point lastMouseDraggedPoint;
+        private MathPoint lastMouseDraggedPoint;
 
         public MainPanel() {
             timer = new Timer(PAINT_SPEED, this);
@@ -84,7 +85,7 @@ public class SwingMain {
 
             addMouseListener(new MouseAdapter(){
                 public void mousePressed(MouseEvent e){
-                    lastMouseDraggedPoint = e.getPoint();
+                    lastMouseDraggedPoint = new MathPoint(e.getPoint());
                 }
             });
 
@@ -120,15 +121,14 @@ public class SwingMain {
 
         private void handleMouseDragged(final MouseEvent e) {
             if(lastMouseDraggedPoint==null){
-                lastMouseDraggedPoint = e.getPoint();
+                lastMouseDraggedPoint = new MathPoint(e.getPoint());
             }
-            swingController.handleMouseDragged(
-                    e.getPoint().x - lastMouseDraggedPoint.x, e.getPoint().y - lastMouseDraggedPoint.y);
-            lastMouseDraggedPoint = e.getPoint();
+            swingController.handleMouseDragged(new MathPoint(e.getPoint()).minus(lastMouseDraggedPoint));
+            lastMouseDraggedPoint = new MathPoint(e.getPoint());
         }
 
         private void handleFrameResize() {
-            swingController.handleResize(getWidth(), getHeight());
+            swingController.handleResize(new MathPoint(getWidth(), getHeight()));
         }
 
         @Override
@@ -147,12 +147,12 @@ public class SwingMain {
      }
 
     private static class SwingController{
-        private int gridOffsetX, gridOffsetY;
-        private int draggedOriginOffsetX, draggedOriginOffsetY;
-        private int originOffsetX, originOffsetY;
-        private int gridNrOfDotsX, gridNrOfDotsY;
-        private int modelNrOfDotsX, modelNrOfDotsY;
-        private int gridWidth, gridHeight;
+        private MathPoint gridOffset;
+        private MathPoint draggedOriginOffset;
+        private MathPoint originOffset;
+        private MathPoint gridNrOfDots;
+        private MathPoint modelNrOfDots;
+        private MathPoint gridRect;
 
         private Controller controller;
         private boolean init = false;
@@ -168,58 +168,48 @@ public class SwingMain {
             }
             init = true;
 
-            calculateGridSize(panelWidth, panelHeight);
+            calculateGridSize(new MathPoint(panelWidth, panelHeight));
             setModelNrOfDots();
             calculateOriginOffset();
 
-            controller = new Controller(new Controller.ModelFactory(modelType, modelNrOfDotsX, modelNrOfDotsY));
-            controller.getModel().putPattern(initialPattern.move(modelNrOfDotsX / 3, modelNrOfDotsY / 3));
+            controller = new Controller(new Controller.ModelFactory(modelType, modelNrOfDots.x, modelNrOfDots.y));
+            final MathPoint patterStartPoint = modelNrOfDots.divide(3);
+            controller.getModel().putPattern(initialPattern.move(patterStartPoint.x, patterStartPoint.y));
         }
 
-        private void calculateGridSize(final int panelWidth, final int panelHeight) {
-            gridOffsetX = 0;
-            gridOffsetY = 0;
-
-            gridNrOfDotsX = 1 + (panelWidth-gridOffsetX)/scaleFactor;
-            gridNrOfDotsY = 1 + (panelHeight-gridOffsetY)/scaleFactor;
-
-            gridWidth = gridNrOfDotsX *scaleFactor;
-            gridHeight = gridNrOfDotsY *scaleFactor;
+        private void calculateGridSize(final MathPoint panelRect) {
+            gridOffset = new MathPoint(0, 0);
+            gridNrOfDots = panelRect.minus(gridOffset).divide(scaleFactor).plus(1,1);
+            gridRect = gridNrOfDots.multiply(scaleFactor);
         }
 
         private void setModelNrOfDots() {
-            modelNrOfDotsX = gridNrOfDotsX-3;
-            modelNrOfDotsY = gridNrOfDotsY-3;
+            modelNrOfDots = gridNrOfDots.minus(3,3);
         }
 
         private void calculateOriginOffset() {
-            final int originOffsetNrOfDotsX = (gridNrOfDotsX-modelNrOfDotsX)/2;
-            final int originOffsetNrOfDotsY = (gridNrOfDotsY-modelNrOfDotsY)/2;
-
-            draggedOriginOffsetX = originOffsetX = gridOffsetX + originOffsetNrOfDotsX*scaleFactor;
-            draggedOriginOffsetY = originOffsetY = gridOffsetY + originOffsetNrOfDotsY*scaleFactor;
+            final MathPoint originOffsetNrOfDots = gridNrOfDots.minus(modelNrOfDots).divide(2);
+            draggedOriginOffset = originOffset = gridOffset.plus(originOffsetNrOfDots).multiply(scaleFactor);
         }
 
-        private void moveOriginOffset(final int diffX, final int diffY) {
-            draggedOriginOffsetX += diffX;
-            draggedOriginOffsetY += diffY;
-            originOffsetX = (draggedOriginOffsetX / scaleFactor) * scaleFactor;
-            originOffsetY = (draggedOriginOffsetY / scaleFactor) * scaleFactor;
+        private void moveOriginOffset(final MathPoint diff) {
+            draggedOriginOffset = draggedOriginOffset.plus(diff);
+            originOffset = draggedOriginOffset.raster(scaleFactor);
         }
 
-        public void handleResize(final int panelWidth, final int panelHeight) {
+        public void handleResize(final MathPoint panelRect) {
             if(!init){
                 return;
             }
-            calculateGridSize(panelWidth, panelHeight);
+            calculateGridSize(panelRect);
             calculateOriginOffset();
         }
 
-        public void handleMouseDragged(final int diffX, final int diffY) {
+        public void handleMouseDragged(final MathPoint diff) {
             if(!init){
                 return;
             }
-            moveOriginOffset(diffX, diffY);
+            moveOriginOffset(diff);
         }
 
         public void handleMouseWheelEvent(final int scrollAmount) {
@@ -238,23 +228,23 @@ public class SwingMain {
         }
 
         private void paintGrid(final Graphics g) {
-             for(int x= gridOffsetX; x<=gridWidth + gridOffsetX; x += scaleFactor){
+             for(int x= gridOffset.x; x<=gridRect.x + gridOffset.x; x += scaleFactor){
                 g.setColor(gridColor);
-                g.drawLine(x, gridOffsetY, x, gridHeight + gridOffsetY);
+                g.drawLine(x, gridOffset.y, x, gridRect.y + gridOffset.y);
             }
-            for(int y = gridOffsetY; y <= gridHeight + gridOffsetY; y += scaleFactor){
+            for(int y = gridOffset.y; y <= gridRect.y + gridOffset.y; y += scaleFactor){
                 g.setColor(gridColor);
-                g.drawLine(gridOffsetX, y, gridWidth + gridOffsetX, y);
+                g.drawLine(gridOffset.x, y, gridRect.x + gridOffset.x, y);
             }
             if(Controller.isFixedModelType(modelType)){
                 g.setColor(gridBoundaryColor);
-                g.drawRect(originOffsetX, originOffsetY,
-                        modelNrOfDotsX*scaleFactor, modelNrOfDotsY*scaleFactor);
+                final MathPoint borderRect = modelNrOfDots.multiply(scaleFactor);
+                g.drawRect(originOffset.x, originOffset.y, borderRect.x, borderRect.y);
             }
         }
 
         public void paintModel(Graphics g){
-            final Dot dot = new Dot(originOffsetX, originOffsetY, scaleFactor);
+            final Dot dot = new Dot(originOffset, scaleFactor);
             for(Cell cell : controller.getModel().getCellMap()){
                 if(cell.isAlive()){
                     if(cell.isChanged()){
@@ -267,8 +257,7 @@ public class SwingMain {
                 } else {
                     dot.setColor(deadUnChanged);
                 }
-                dot.setX(cell.getPoint().getX() * scaleFactor);
-                dot.setY(cell.getPoint().getY() * scaleFactor);
+                dot.setPos(new MathPoint(cell.getPoint().getX(), cell.getPoint().getY()).multiply(scaleFactor));
                 dot.paintDot(g);
             }
         }
@@ -296,24 +285,18 @@ public class SwingMain {
      }
 
     private static class Dot{
-        private int originOffsetX, originOffsetY;
-        private int x,y, width, height;
+        private final MathPoint originOffset, rect;
+        private MathPoint pos;
         private Color color;
 
-        public Dot(final int originOffsetX, final int originOffsetY, final int squareSize){
-            this.originOffsetX = originOffsetX;
-            this.originOffsetY = originOffsetY;
-            this.width = squareSize;
-            this.height = squareSize;
+        public Dot(final MathPoint originOffset, final int squareSize){
+            this.originOffset = originOffset;
+            this.rect = new MathPoint(squareSize, squareSize);
             this.color = backGroundColor;
         }
 
-        public void setX(int x){
-            this.x = x;
-        }
-
-        public void setY(int y){
-            this.y = y;
+        public void setPos(MathPoint pos){
+            this.pos = pos;
         }
 
         public void setColor(final Color color) {
@@ -321,19 +304,19 @@ public class SwingMain {
         }
 
         public void paintDot(Graphics g){
+            final MathPoint startPoint = pos.plus(originOffset);
             g.setColor(color);
-            g.fillRect(x+ originOffsetX, y+ originOffsetY, width, height);
+            g.fillRect(startPoint.x, startPoint.y, rect.x, rect.y);
             g.setColor(gridColor);
-            g.drawRect(x+ originOffsetX, y+ originOffsetY, width, height);
+            g.drawRect(startPoint.x, startPoint.y, rect.x, rect.y);
         }
 
         @Override
         public String toString() {
             return "Dot{" +
-                    "x=" + x +
-                    ", y=" + y +
-                    ", width=" + width +
-                    ", height=" + height +
+                    "originOffset=" + originOffset +
+                    ", rect=" + rect +
+                    ", pos=" + pos +
                     ", color=" + color +
                     '}';
         }
