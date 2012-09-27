@@ -91,20 +91,24 @@ public class SwingMain {
 
             addMouseMotionListener(new MouseAdapter(){
                 public void mouseDragged(MouseEvent e){
-                    handleMouseDragged(e);
+                    if(lastMouseDraggedPoint==null){
+                        lastMouseDraggedPoint = toMathPoint(e.getPoint());
+                    }
+                    swingController.handleDragPanel(toMathPoint(e.getPoint()).minus(lastMouseDraggedPoint));
+                    lastMouseDraggedPoint = toMathPoint(e.getPoint());
                 }
             });
 
             addMouseWheelListener(new MouseAdapter() {
                 @Override
                 public void mouseWheelMoved(final MouseWheelEvent e) {
-                    handleWheelMoved(e);
+                    swingController.handleZoomPanel(toMathPoint(e.getPoint()), e.getWheelRotation() * e.getScrollAmount());
                 }
             });
 
             addComponentListener(new ComponentListener() {
                 public void componentResized(ComponentEvent arg0) {
-                    handleFrameResize();
+                    swingController.handleResizePanel(new MathPoint(getWidth(), getHeight()));
                 }
 
                 public void componentMoved(ComponentEvent arg0) { }
@@ -113,22 +117,6 @@ public class SwingMain {
 
                 public void componentHidden(ComponentEvent arg0) { }
             });
-        }
-
-        private void handleWheelMoved(final MouseWheelEvent e) {
-            swingController.handleZoomPanel(toMathPoint(e.getPoint()), e.getWheelRotation() * e.getScrollAmount());
-        }
-
-        private void handleMouseDragged(final MouseEvent e) {
-            if(lastMouseDraggedPoint==null){
-                lastMouseDraggedPoint = toMathPoint(e.getPoint());
-            }
-            swingController.handleDragPanel(toMathPoint(e.getPoint()).minus(lastMouseDraggedPoint));
-            lastMouseDraggedPoint = toMathPoint(e.getPoint());
-        }
-
-        private void handleFrameResize() {
-            swingController.handleResizePanel(new MathPoint(getWidth(), getHeight()));
         }
 
         @Override
@@ -200,7 +188,9 @@ public class SwingMain {
 
         private void zoomPanel(final MathPoint zoomPoint, final int zoomDirection) {
             scaleFactor += zoomDirection;
-
+            if(scaleFactor<2){
+                scaleFactor = 2;
+            }
         }
 
         public void handleResizePanel(final MathPoint rect) {
