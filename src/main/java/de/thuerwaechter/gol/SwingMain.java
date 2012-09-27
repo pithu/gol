@@ -45,7 +45,7 @@ public class SwingMain {
     private static int scaleFactor = 10;
 
     private static Color gridColor = Color.GRAY;
-    private static Color gridBoundaryColor = Color.BLACK;
+    private static Color gridBoundaryColor = Color.RED;
     private static Color backGroundColor = Color.WHITE;
     private static Color aliveChanged = Color.RED;
     private static Color aliveUnChanged = Color.BLACK;
@@ -81,7 +81,7 @@ public class SwingMain {
             timer = new Timer(PAINT_SPEED, this);
             timer.start();
 
-            setBorder(BorderFactory.createLineBorder(gridBoundaryColor));
+            setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
             addMouseListener(new MouseAdapter(){
                 public void mousePressed(MouseEvent e){
@@ -152,10 +152,11 @@ public class SwingMain {
                 return;
             }
             init = true;
+            gridOffset = new MathPoint(0, 0);
 
             calculateGridSize(new MathPoint(panelWidth, panelHeight));
             setModelNrOfDots();
-            calculateOriginOffset();
+            centerOriginOffset();
 
             controller = new Controller(new Controller.ModelFactory(modelType, modelNrOfDots.x, modelNrOfDots.y));
             final MathPoint patterStartPoint = modelNrOfDots.divide(3);
@@ -164,35 +165,49 @@ public class SwingMain {
 
         private void calculateGridSize(final MathPoint rect) {
             panelRect = rect;
-            gridOffset = new MathPoint(0, 0);
             gridNrOfDots = panelRect.minus(gridOffset).divide(scaleFactor).plus(1,1);
             gridRect = gridNrOfDots.multiply(scaleFactor);
         }
 
         private void setModelNrOfDots() {
-            modelNrOfDots = gridNrOfDots.minus(3,3);
+            modelNrOfDots = gridNrOfDots.minus(3, 3);
         }
 
-        private void calculateOriginOffset() {
+        private void centerOriginOffset() {
             final MathPoint originOffsetNrOfDots = gridNrOfDots.minus(modelNrOfDots).divide(2);
             draggedOriginOffset = originOffset = gridOffset.plus(originOffsetNrOfDots).multiply(scaleFactor);
         }
 
         private void moveOriginOffset(final MathPoint diff) {
             draggedOriginOffset = draggedOriginOffset.plus(diff);
-            originOffset = draggedOriginOffset.raster(scaleFactor);
+            originOffset = draggedOriginOffset.snapToGrid(scaleFactor);
+        }
+
+        private void zoomOriginOffset(final MathPoint zoomPoint, final int zoomDirection) {
+            final int oldScaleFactor = scaleFactor - zoomDirection;
+            if(zoomDirection>0){
+                draggedOriginOffset = draggedOriginOffset.minus(zoomPoint.divide(oldScaleFactor)).plus(draggedOriginOffset.divide(oldScaleFactor));
+            } else {
+                draggedOriginOffset = draggedOriginOffset.plus(zoomPoint.divide(oldScaleFactor)).minus(draggedOriginOffset.divide(oldScaleFactor));
+            }
+            originOffset = draggedOriginOffset.snapToGrid(scaleFactor);
         }
 
         private void zoomPanel(final MathPoint zoomPoint, final int zoomDirection) {
+            if(zoomDirection==0){
+                return;
+            }
             scaleFactor += zoomDirection;
             if(scaleFactor<2){
                 scaleFactor = 2;
+            } else {
+                calculateGridSize(panelRect);
+                zoomOriginOffset(zoomPoint, zoomDirection);
             }
         }
 
         public void handleResizePanel(final MathPoint rect) {
             calculateGridSize(rect);
-            calculateOriginOffset();
         }
 
         public void handleDragPanel(final MathPoint diff) {
@@ -201,8 +216,6 @@ public class SwingMain {
 
         public void handleZoomPanel(final MathPoint zoomPoint, final int zoomDirection) {
             zoomPanel(zoomPoint, signum(zoomDirection));
-            calculateGridSize(panelRect);
-            calculateOriginOffset();
         }
 
         public void paint(final Graphics g) {

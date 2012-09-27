@@ -56,8 +56,8 @@ public class MathPoint {
         return new MathPoint(x*scaleFactor, y*scaleFactor);
     }
 
-    public MathPoint raster(final int scaleFactor){
-        return this.divide(scaleFactor).multiply(scaleFactor);
+    public MathPoint snapToGrid(final int scaleFactor){
+        return new MathPoint(this.x - this.x % scaleFactor, this.y - this.y % scaleFactor);
     }
 
     public int getX() {
