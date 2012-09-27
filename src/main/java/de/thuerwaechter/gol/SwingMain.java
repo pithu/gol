@@ -41,7 +41,7 @@ public class SwingMain {
     private static final int CANVAS_SIZE_Y = 500;
 
     private static final Pattern initialPattern = Pattern.TEST;
-    private static final Model.ModelType modelType = Model.ModelType.INFINITE;
+    private static final Model.ModelType modelType = Model.ModelType.FIXED_MIRROR;
     private static int scaleFactor = 10;
 
     private static Color gridColor = Color.GRAY;
@@ -85,7 +85,7 @@ public class SwingMain {
 
             addMouseListener(new MouseAdapter(){
                 public void mousePressed(MouseEvent e){
-                    lastMouseDraggedPoint = new MathPoint(e.getPoint());
+                    lastMouseDraggedPoint = toMathPoint(e.getPoint());
                 }
             });
 
@@ -116,19 +116,19 @@ public class SwingMain {
         }
 
         private void handleWheelMoved(final MouseWheelEvent e) {
-            swingController.handleMouseWheelEvent(e.getWheelRotation() * e.getScrollAmount());
+            swingController.handleZoomPanel(toMathPoint(e.getPoint()), e.getWheelRotation() * e.getScrollAmount());
         }
 
         private void handleMouseDragged(final MouseEvent e) {
             if(lastMouseDraggedPoint==null){
-                lastMouseDraggedPoint = new MathPoint(e.getPoint());
+                lastMouseDraggedPoint = toMathPoint(e.getPoint());
             }
-            swingController.handleMouseDragged(new MathPoint(e.getPoint()).minus(lastMouseDraggedPoint));
-            lastMouseDraggedPoint = new MathPoint(e.getPoint());
+            swingController.handleDragPanel(toMathPoint(e.getPoint()).minus(lastMouseDraggedPoint));
+            lastMouseDraggedPoint = toMathPoint(e.getPoint());
         }
 
         private void handleFrameResize() {
-            swingController.handleResize(new MathPoint(getWidth(), getHeight()));
+            swingController.handleResizePanel(new MathPoint(getWidth(), getHeight()));
         }
 
         @Override
@@ -152,7 +152,7 @@ public class SwingMain {
         private MathPoint originOffset;
         private MathPoint gridNrOfDots;
         private MathPoint modelNrOfDots;
-        private MathPoint gridRect;
+        private MathPoint gridRect, panelRect;
 
         private Controller controller;
         private boolean init = false;
@@ -177,7 +177,8 @@ public class SwingMain {
             controller.getModel().putPattern(initialPattern.move(patterStartPoint.x, patterStartPoint.y));
         }
 
-        private void calculateGridSize(final MathPoint panelRect) {
+        private void calculateGridSize(final MathPoint rect) {
+            panelRect = rect;
             gridOffset = new MathPoint(0, 0);
             gridNrOfDots = panelRect.minus(gridOffset).divide(scaleFactor).plus(1,1);
             gridRect = gridNrOfDots.multiply(scaleFactor);
@@ -197,29 +198,33 @@ public class SwingMain {
             originOffset = draggedOriginOffset.raster(scaleFactor);
         }
 
-        public void handleResize(final MathPoint panelRect) {
+        private void zoomPanel(final MathPoint zoomPoint, final int zoomDirection) {
+            final int direction = signum(zoomDirection);
+            scaleFactor += direction;
+        }
+
+        public void handleResizePanel(final MathPoint rect) {
             if(!init){
                 return;
             }
-            calculateGridSize(panelRect);
+            calculateGridSize(rect);
             calculateOriginOffset();
         }
 
-        public void handleMouseDragged(final MathPoint diff) {
+        public void handleDragPanel(final MathPoint diff) {
             if(!init){
                 return;
             }
             moveOriginOffset(diff);
         }
 
-        public void handleMouseWheelEvent(final int scrollAmount) {
-           if(scrollAmount>0){
-               scaleFactor++;
-           } else {
-               if(scaleFactor>2){
-                   scaleFactor--;
-               }
-           }
+        public void handleZoomPanel(final MathPoint zoomPoint, final int zoomDirection) {
+            if(!init){
+                return;
+            }
+            zoomPanel(zoomPoint, zoomDirection);
+            calculateGridSize(panelRect);
+            calculateOriginOffset();
         }
 
         public void paint(final Graphics g) {
@@ -320,5 +325,13 @@ public class SwingMain {
                     ", color=" + color +
                     '}';
         }
+    }
+
+    private static MathPoint toMathPoint(final Point point){
+        return new MathPoint(point.x, point.y);
+    }
+
+    private static int signum(final int value){
+        return value > 0 ? 1 : value < 0 ? -1 : 0;
     }
 }

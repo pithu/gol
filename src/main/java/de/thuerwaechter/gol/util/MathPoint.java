@@ -32,11 +32,6 @@ public class MathPoint {
         this.y = point.getY();
     }
 
-    public MathPoint(final java.awt.Point point) {
-        this.x = point.x;
-        this.y = point.y;
-    }
-
     public MathPoint plus(final MathPoint point){
         return new MathPoint(x + point.getX(), y + point.getY());
     }
