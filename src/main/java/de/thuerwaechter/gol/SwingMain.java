@@ -199,30 +199,21 @@ public class SwingMain {
         }
 
         private void zoomPanel(final MathPoint zoomPoint, final int zoomDirection) {
-            final int direction = signum(zoomDirection);
-            scaleFactor += direction;
+            scaleFactor += zoomDirection;
+
         }
 
         public void handleResizePanel(final MathPoint rect) {
-            if(!init){
-                return;
-            }
             calculateGridSize(rect);
             calculateOriginOffset();
         }
 
         public void handleDragPanel(final MathPoint diff) {
-            if(!init){
-                return;
-            }
             moveOriginOffset(diff);
         }
 
         public void handleZoomPanel(final MathPoint zoomPoint, final int zoomDirection) {
-            if(!init){
-                return;
-            }
-            zoomPanel(zoomPoint, zoomDirection);
+            zoomPanel(zoomPoint, signum(zoomDirection));
             calculateGridSize(panelRect);
             calculateOriginOffset();
         }
