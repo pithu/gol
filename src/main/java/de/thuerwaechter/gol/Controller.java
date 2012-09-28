@@ -18,11 +18,14 @@ package de.thuerwaechter.gol;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import de.thuerwaechter.gol.model.Cell;
+import de.thuerwaechter.gol.model.CellPoint;
 import de.thuerwaechter.gol.model.CellState;
 import de.thuerwaechter.gol.model.Model;
 
@@ -60,15 +63,18 @@ public class Controller {
     }
 
     public void processNextGeneration() {
-        final Model successorModel = modelFactory.get().newModel();
+        final Map<CellPoint, CellState> successorModel = new HashMap<CellPoint, CellState>();
         Collection<Cell> cells = currentModel.getCellMap();
         for(Cell cell : cells){
             final CellState nextCellState = cellSuccessorStateStrategy.calculateSuccessorState(
                     cell, currentModel.getEightNeighbours(cell));
-            successorModel.putCell(cell.getPoint(), nextCellState);
+            successorModel.put(cell.getPoint(), nextCellState);
         }
-        successorModel.populateNeighbours();
-        currentModel = successorModel;
+        currentModel.resetChangedState();
+        for(Map.Entry<CellPoint, CellState> entry : successorModel.entrySet()){
+            currentModel.putCell(entry.getKey(), entry.getValue());
+        }
+        currentModel.populateNeighbours();
         nrOfGeneration++;
     }
 

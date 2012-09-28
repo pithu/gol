@@ -40,7 +40,7 @@ public class SwingMain {
     private static final int CANVAS_SIZE_X = 500;
     private static final int CANVAS_SIZE_Y = 500;
 
-    private static final Pattern initialPattern = Pattern.X;
+    private static final Pattern initialPattern = Pattern.TEST;
     private static final Model.ModelType modelType = Model.ModelType.FIXED_MIRROR;
     private static int scaleFactor = 10;
 

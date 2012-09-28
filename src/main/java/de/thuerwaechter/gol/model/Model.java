@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author <a href="pts@thuerwaechter.de">pithu</a>
@@ -28,10 +30,10 @@ import java.util.Map;
 public class Model {
     public static enum ModelType {INFINITE, FIXED_CUT, FIXED_MIRROR }
 
-    private final Map<CellPoint, CellState> cellMap = new HashMap<CellPoint, CellState>();
+    private final Map<CellPoint, CellState> cellMap = new ConcurrentHashMap<CellPoint, CellState>();
     private final ModelMappingStrategy borderStrategy;
     private final ModelType modelType;
-    private boolean changed = false;
+    private AtomicBoolean changed = new AtomicBoolean(false);
 
     private Model(final ModelMappingStrategy borderStrategy, final ModelType modelType) {
         this.borderStrategy = borderStrategy;
@@ -99,7 +101,7 @@ public class Model {
 
     public void putCell(final CellPoint cellPoint, final CellState cellState) {
         if(cellState.isChanged()){
-            changed = true;
+            changed.set(true);
         }
         final CellPoint point = borderStrategy.mapPoint(cellPoint);
         if(point == null){
@@ -135,8 +137,12 @@ public class Model {
         return modelType;
     }
 
+    public void resetChangedState() {
+        changed.set(false);
+    }
+
     public boolean isChanged() {
-        return changed;
+        return changed.get();
     }
 
     @Override
