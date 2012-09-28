@@ -18,7 +18,6 @@ package de.thuerwaechter.gol.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,7 +27,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author <a href="pts@thuerwaechter.de">pithu</a>
  */
 public class Model {
-    public static enum ModelType {INFINITE, FIXED_CUT, FIXED_MIRROR }
 
     private final Map<CellPoint, CellState> cellMap = new ConcurrentHashMap<CellPoint, CellState>();
     private final ModelMappingStrategy borderStrategy;

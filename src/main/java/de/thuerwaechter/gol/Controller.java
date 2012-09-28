@@ -72,10 +72,6 @@ public class Controller {
         nrOfGeneration++;
     }
 
-    public static boolean isFixedModelType(Model.ModelType modelType){
-        return modelType == Model.ModelType.FIXED_MIRROR || modelType == Model.ModelType.FIXED_CUT;
-    }
-
     private static interface CellSuccessorStateStrategy {
         CellState calculateSuccessorState(Cell cell, Collection<Cell> neighbours);
     }

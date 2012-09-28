@@ -17,23 +17,13 @@
 package de.thuerwaechter.gol.model;
 
 /** @author <a href="pts@thuerwaechter.de">pithu</a> */
-public class ModelFactory{
-    private final ModelType modelType;
-    private final int sizeX, sizeY;
+public enum ModelType {
+    INFINITE,
+    FIXED_CUT,
+    FIXED_MIRROR;
 
-    public ModelFactory(final ModelType modelType, final int sizeX, final int sizeY) {
-        this.modelType = modelType;
-        this.sizeX = sizeX;
-        this.sizeY = sizeY;
+    public boolean isFixedType(){
+        return this == ModelType.FIXED_MIRROR || this == ModelType.FIXED_CUT;
     }
 
-    public Model newModel(){
-        if(modelType == ModelType.INFINITE){
-            return Model.newInfiniteModel();
-        } else if (modelType == ModelType.FIXED_CUT){
-            return Model.newFixedSizeCutEdgesModel(sizeX, sizeY);
-        } else {
-            return Model.newFixedSizeMirrorEdgesModel(sizeX, sizeY);
-        }
-    }
 }

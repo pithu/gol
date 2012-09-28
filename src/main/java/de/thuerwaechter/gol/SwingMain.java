@@ -28,8 +28,8 @@ import javax.swing.*;
 
 import de.thuerwaechter.gol.model.Cell;
 import de.thuerwaechter.gol.model.CellState;
-import de.thuerwaechter.gol.model.Model;
 import de.thuerwaechter.gol.model.ModelFactory;
+import de.thuerwaechter.gol.model.ModelType;
 import de.thuerwaechter.gol.model.Pattern;
 import de.thuerwaechter.gol.model.CellPoint;
 
@@ -43,7 +43,7 @@ public class SwingMain {
     private static final int CANVAS_SIZE_Y = 500;
 
     private static final Pattern initialPattern = Pattern.TEST;
-    private static final Model.ModelType modelType = Model.ModelType.FIXED_MIRROR;
+    private static final ModelType modelType = ModelType.FIXED_MIRROR;
     private static int scaleFactor = 10;
 
     private static Color gridColor = Color.GRAY;
@@ -256,7 +256,7 @@ public class SwingMain {
                 g.setColor(gridColor);
                 g.drawLine(gridOffset.x, y, gridRect.x + gridOffset.x, y);
             }
-            if(Controller.isFixedModelType(modelType)){
+            if(modelType.isFixedType()){
                 g.setColor(gridBoundaryColor);
                 final CellPoint borderRect = modelNrOfDots.multiply(scaleFactor);
                 g.drawRect(originOffset.x, originOffset.y, borderRect.x, borderRect.y);

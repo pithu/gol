@@ -130,7 +130,7 @@ public class ModelTest {
     @Test
     public void testInfiniteModel(){
         Model model = Model.newInfiniteModel();
-        assertEquals(Model.ModelType.INFINITE, model.getModelType());
+        assertEquals(ModelType.INFINITE, model.getModelType());
 
         assertTrue(model.getCellMap().size()==0);
 
@@ -145,7 +145,7 @@ public class ModelTest {
     @Test
     public void testCutEdgesModel(){
         Model model = Model.newFixedSizeCutEdgesModel(10,10);
-        assertEquals(Model.ModelType.FIXED_CUT, model.getModelType());
+        assertEquals(ModelType.FIXED_CUT, model.getModelType());
 
         assertTrue(model.getCellMap().size()==0);
 
@@ -172,7 +172,7 @@ public class ModelTest {
     @Test
     public void testMirrorEdgesModel(){
         Model model = Model.newFixedSizeMirrorEdgesModel(10,10);
-        assertEquals(Model.ModelType.FIXED_MIRROR, model.getModelType());
+        assertEquals(ModelType.FIXED_MIRROR, model.getModelType());
 
         assertTrue(model.getCellMap().size()==0);
 
