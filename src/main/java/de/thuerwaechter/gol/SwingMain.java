@@ -27,6 +27,7 @@ import java.awt.event.MouseWheelEvent;
 import javax.swing.*;
 
 import de.thuerwaechter.gol.model.Cell;
+import de.thuerwaechter.gol.model.CellState;
 import de.thuerwaechter.gol.model.Model;
 import de.thuerwaechter.gol.model.Pattern;
 import de.thuerwaechter.gol.model.CellPoint;
@@ -76,6 +77,7 @@ public class SwingMain {
         private final SwingController swingController = new SwingController();
         private final Timer timer;
         private CellPoint lastMouseDraggedPoint;
+        private int currentMouseButton = MouseEvent.NOBUTTON;
 
         public MainPanel() {
             timer = new Timer(PAINT_SPEED, this);
@@ -85,17 +87,29 @@ public class SwingMain {
 
             addMouseListener(new MouseAdapter(){
                 public void mousePressed(MouseEvent e){
-                    lastMouseDraggedPoint = toCellPoint(e.getPoint());
+                    currentMouseButton = e.getButton();
+                    if(currentMouseButton == MouseEvent.BUTTON1){
+                        swingController.handlePaintCell(toCellPoint(e.getPoint()), e.isShiftDown());
+                    } else if (currentMouseButton == MouseEvent.BUTTON3){
+                        lastMouseDraggedPoint = toCellPoint(e.getPoint());
+                    }
+                }
+                public void mouseReleased(MouseEvent e){
+                    currentMouseButton = MouseEvent.NOBUTTON;
                 }
             });
 
             addMouseMotionListener(new MouseAdapter(){
                 public void mouseDragged(MouseEvent e){
-                    if(lastMouseDraggedPoint==null){
+                    if(currentMouseButton == MouseEvent.BUTTON1){
+                        swingController.handlePaintCell(toCellPoint(e.getPoint()), e.isShiftDown());
+                    } else if (currentMouseButton == MouseEvent.BUTTON3){
+                        if(lastMouseDraggedPoint==null){
+                            lastMouseDraggedPoint = toCellPoint(e.getPoint());
+                        }
+                        swingController.handleDragPanel(toCellPoint(e.getPoint()).minus(lastMouseDraggedPoint));
                         lastMouseDraggedPoint = toCellPoint(e.getPoint());
                     }
-                    swingController.handleDragPanel(toCellPoint(e.getPoint()).minus(lastMouseDraggedPoint));
-                    lastMouseDraggedPoint = toCellPoint(e.getPoint());
                 }
             });
 
@@ -220,6 +234,11 @@ public class SwingMain {
 
         public void handleZoomPanel(final CellPoint zoomPoint, final int zoomDirection) {
             zoomPanel(zoomPoint, zoomDirection * -1);
+        }
+
+        public void handlePaintCell(final CellPoint cellPoint, final boolean shiftDown) {
+            final CellPoint gridPoint = cellPoint.minus(originOffset).divide(scaleFactor);
+            controller.getModel().putCell(gridPoint, shiftDown ? CellState.DEAD_CHANGED : CellState.ALIVE_CHANGED);
         }
 
         public void paint(final Graphics g) {
