@@ -43,7 +43,7 @@ public class SwingMain {
     private static final int CANVAS_SIZE_Y = 500;
 
     private static final Pattern initialPattern = Pattern.GLIDER;
-    private static final ModelType modelType = ModelType.INFINITE;
+    private static final ModelType modelType = ModelType.FIXED_MIRROR;
     private static int scaleFactor = 10;
 
     private static Color gridColor = Color.GRAY;
@@ -156,6 +156,11 @@ public class SwingMain {
             } else if("pause".equals(e.getActionCommand())){
                 paintPanelController.handlePause();
                 buttonPanelController.setToPlay();
+            } else if("next".equals(e.getActionCommand())){
+                paintPanelController.handleNext();
+            } else if("reset".equals(e.getActionCommand())){
+                buttonPanelController.setToPlay();
+                paintPanelController.handleReset(getWidth(), getHeight());
             }
             repaint();
         }
@@ -175,9 +180,14 @@ public class SwingMain {
 
     private static class ButtonPanelController {
         private boolean initialized = false;
+        ImageIcon playButtonIcon = createImageIcon("/images/Aqua-Play-icon.png");
+        ImageIcon pauseButtonIcon = createImageIcon("/images/Aqua-Pause-icon.png");
+        ImageIcon nextButtonIcon = createImageIcon("/images/Aqua-Next-icon.png");
+        ImageIcon resetButtonIcon = createImageIcon("/images/Aqua-Menu-icon.png");
 
         private JButton playPauseButton;
-        private boolean playPauseButtonPaused;
+        private JButton nextButton;
+        private JButton resetButton;
 
         public void initialize(final MainPanel mainPanel) {
             if(initialized){
@@ -185,28 +195,34 @@ public class SwingMain {
             }
             initialized = true;
 
-            playPauseButton = new JButton("play");
-            setToPlay();
-
+            playPauseButton = new JButton(playButtonIcon);
             playPauseButton.addActionListener(mainPanel);
             mainPanel.add(playPauseButton);
+            setToPlay();
+
+            nextButton = new JButton(nextButtonIcon);
+            nextButton.setActionCommand("next");
+            nextButton.addActionListener(mainPanel);
+            mainPanel.add(nextButton);
+
+            resetButton = new JButton(resetButtonIcon);
+            resetButton.setActionCommand("reset");
+            resetButton.addActionListener(mainPanel);
+            mainPanel.add(resetButton);
+
         }
 
         public void handleResizePanel(final CellPoint cellPoint) {
-
-
         }
 
         public void setToPause() {
             playPauseButton.setActionCommand("pause");
-            playPauseButton.setText("pause");
-            playPauseButtonPaused = false;
+            playPauseButton.setIcon(pauseButtonIcon);
         }
 
         public void setToPlay() {
             playPauseButton.setActionCommand("play");
-            playPauseButton.setText("play");
-            playPauseButtonPaused = true;
+            playPauseButton.setIcon(playButtonIcon);
         }
     }
 
@@ -219,12 +235,15 @@ public class SwingMain {
 
         private Controller controller;
         private boolean initialized = false;
-        private boolean paused = true;
+        private boolean paused;
+        private boolean showNext;
 
         public void initialize(final int panelWidth, final int panelHeight){
             if(initialized){
                 return;
             }
+            paused = true;
+            showNext = false;
             initialized = true;
             gridOffset = new CellPoint(0, 0);
 
@@ -305,8 +324,21 @@ public class SwingMain {
             paused = true;
         }
 
+        public void handleNext() {
+            if(!paused){
+                return;
+            }
+            showNext = true;
+        }
+
+        public void handleReset(final int width, final int height) {
+            paused = true;
+            initialized = false;
+            initialize(width, height);
+        }
+
         public boolean handleTrigger() {
-            if(!initialized || paused){
+            if(!initialized || (paused && !showNext)){
                 return false;
             }
 
@@ -323,6 +355,7 @@ public class SwingMain {
                     }
                 };
                 worker.execute();
+                showNext = false;
                 return true;
             }
             return false;
@@ -405,6 +438,18 @@ public class SwingMain {
                     ", pos=" + pos +
                     ", color=" + color +
                     '}';
+        }
+    }
+
+
+    /** Returns an ImageIcon, or null if the path was invalid. */
+    private static ImageIcon createImageIcon(String path) {
+        java.net.URL imgURL = SwingMain.class.getResource(path);
+        if (imgURL != null) {
+            return new ImageIcon(imgURL);
+        } else {
+            System.err.println("Couldn't find file: " + path);
+            return null;
         }
     }
 
