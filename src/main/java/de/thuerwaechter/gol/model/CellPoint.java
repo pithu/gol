@@ -18,14 +18,43 @@ package de.thuerwaechter.gol.model;
 
 /** @author <a href="pts@thuerwaechter.de">pithu</a> */
 public class CellPoint {
-    private final int x;
-    private final int y;
+    public final int x;
+    public final int y;
+    
     private final int hashCode;
 
     public CellPoint(final int x, final int y) {
         this.x = x;
         this.y = y;
         this.hashCode = _hashCode();
+    }
+
+    public CellPoint plus(final CellPoint point){
+        return new CellPoint(x + point.getX(), y + point.getY());
+    }
+
+    public CellPoint plus(final int x, final int y){
+        return new CellPoint(this.x + x, this.y + y);
+    }
+
+    public CellPoint minus(final CellPoint point){
+        return new CellPoint(x - point.getX(), y - point.getY());
+    }
+
+    public CellPoint minus(final int x, final int y){
+        return new CellPoint(this.x - x, this.y - y);
+    }
+
+    public CellPoint divide(final int scaleFactor){
+        return new CellPoint(x/scaleFactor, y/scaleFactor);
+    }
+
+    public CellPoint multiply(final int scaleFactor){
+        return new CellPoint(x*scaleFactor, y*scaleFactor);
+    }
+
+    public CellPoint snapToGrid(final int scaleFactor){
+        return new CellPoint(this.x - this.x % scaleFactor, this.y - this.y % scaleFactor);
     }
 
     public int getX() {
