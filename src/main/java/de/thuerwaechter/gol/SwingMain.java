@@ -42,8 +42,8 @@ public class SwingMain {
     private static final int CANVAS_SIZE_X = 500;
     private static final int CANVAS_SIZE_Y = 500;
 
-    private static final Pattern initialPattern = Pattern.TEST;
-    private static final ModelType modelType = ModelType.FIXED_MIRROR;
+    private static final Pattern initialPattern = Pattern.GLIDER;
+    private static final ModelType modelType = ModelType.INFINITE;
     private static int scaleFactor = 10;
 
     private static Color gridColor = Color.GRAY;
@@ -75,13 +75,19 @@ public class SwingMain {
     }
 
     private static class MainPanel extends JPanel implements ActionListener {
-        private final SwingController swingController = new SwingController();
+        private final PaintPanelController paintPanelController;
+        private final ButtonPanelController buttonPanelController;
+
         private final Timer timer;
         private CellPoint lastMouseDraggedPoint;
         private int currentMouseButton = MouseEvent.NOBUTTON;
 
         public MainPanel() {
+            paintPanelController = new PaintPanelController();
+            buttonPanelController = new ButtonPanelController();
+
             timer = new Timer(PAINT_SPEED, this);
+            timer.setActionCommand("timer");
             timer.start();
 
             setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -90,10 +96,11 @@ public class SwingMain {
                 public void mousePressed(MouseEvent e){
                     currentMouseButton = e.getButton();
                     if(currentMouseButton == MouseEvent.BUTTON1){
-                        swingController.handlePaintCell(toCellPoint(e.getPoint()), e.isShiftDown());
+                        paintPanelController.handlePaintCell(toCellPoint(e.getPoint()), e.isShiftDown());
                     } else if (currentMouseButton == MouseEvent.BUTTON3){
                         lastMouseDraggedPoint = toCellPoint(e.getPoint());
                     }
+                    repaint();
                 }
                 public void mouseReleased(MouseEvent e){
                     currentMouseButton = MouseEvent.NOBUTTON;
@@ -103,27 +110,31 @@ public class SwingMain {
             addMouseMotionListener(new MouseAdapter(){
                 public void mouseDragged(MouseEvent e){
                     if(currentMouseButton == MouseEvent.BUTTON1){
-                        swingController.handlePaintCell(toCellPoint(e.getPoint()), e.isShiftDown());
+                        paintPanelController.handlePaintCell(toCellPoint(e.getPoint()), e.isShiftDown());
                     } else if (currentMouseButton == MouseEvent.BUTTON3){
                         if(lastMouseDraggedPoint==null){
                             lastMouseDraggedPoint = toCellPoint(e.getPoint());
                         }
-                        swingController.handleDragPanel(toCellPoint(e.getPoint()).minus(lastMouseDraggedPoint));
+                        paintPanelController.handleDragPanel(toCellPoint(e.getPoint()).minus(lastMouseDraggedPoint));
                         lastMouseDraggedPoint = toCellPoint(e.getPoint());
                     }
+                    repaint();
                 }
             });
 
             addMouseWheelListener(new MouseAdapter() {
                 @Override
                 public void mouseWheelMoved(final MouseWheelEvent e) {
-                    swingController.handleZoomPanel(toCellPoint(e.getPoint()), e.getWheelRotation());
+                    paintPanelController.handleZoomPanel(toCellPoint(e.getPoint()), e.getWheelRotation());
+                    repaint();
                 }
             });
 
             addComponentListener(new ComponentListener() {
                 public void componentResized(ComponentEvent arg0) {
-                    swingController.handleResizePanel(new CellPoint(getWidth(), getHeight()));
+                    paintPanelController.handleResizePanel(new CellPoint(getWidth(), getHeight()));
+                    buttonPanelController.handleResizePanel(new CellPoint(getWidth(), getHeight()));
+                    repaint();
                 }
 
                 public void componentMoved(ComponentEvent arg0) { }
@@ -132,20 +143,29 @@ public class SwingMain {
 
                 public void componentHidden(ComponentEvent arg0) { }
             });
-        }
+
+         }
 
         @Override
         public void actionPerformed(final ActionEvent e) {
-            if(swingController.trigger()){
-                repaint();
+            if("timer".equals(e.getActionCommand())){
+                paintPanelController.handleTrigger();
+            } else if("play".equals(e.getActionCommand())){
+                paintPanelController.handlePlay();
+                buttonPanelController.setToPause();
+            } else if("pause".equals(e.getActionCommand())){
+                paintPanelController.handlePause();
+                buttonPanelController.setToPlay();
             }
+            repaint();
         }
 
         public void paintComponent(Graphics g) {
             setBackground(backGroundColor);
             super.paintComponent(g);
-            swingController.initialize(getWidth(), getHeight());
-            swingController.paint(g);
+            paintPanelController.initialize(getWidth(), getHeight());
+            paintPanelController.paint(g);
+            buttonPanelController.initialize(this);
         }
 
         private static CellPoint toCellPoint(final Point point){
@@ -153,24 +173,59 @@ public class SwingMain {
         }
     }
 
-    private static class SwingController{
+    private static class ButtonPanelController {
+        private boolean initialized = false;
+
+        private JButton playPauseButton;
+        private boolean playPauseButtonPaused;
+
+        public void initialize(final MainPanel mainPanel) {
+            if(initialized){
+                return;
+            }
+            initialized = true;
+
+            playPauseButton = new JButton("play");
+            setToPlay();
+
+            playPauseButton.addActionListener(mainPanel);
+            mainPanel.add(playPauseButton);
+        }
+
+        public void handleResizePanel(final CellPoint cellPoint) {
+
+
+        }
+
+        public void setToPause() {
+            playPauseButton.setActionCommand("pause");
+            playPauseButton.setText("pause");
+            playPauseButtonPaused = false;
+        }
+
+        public void setToPlay() {
+            playPauseButton.setActionCommand("play");
+            playPauseButton.setText("play");
+            playPauseButtonPaused = true;
+        }
+    }
+
+    private static class PaintPanelController {
+        private SwingWorker<Void, Void> worker;
+
         private CellPoint gridOffset, originOffset, draggedOriginOffset;
         private CellPoint gridNrOfDots, modelNrOfDots;
         private CellPoint gridRect, panelRect;
 
         private Controller controller;
-        private boolean init = false;
-        private SwingWorker<Void, Void> worker;
-
-        public boolean isInit() {
-            return init;
-        }
+        private boolean initialized = false;
+        private boolean paused = true;
 
         public void initialize(final int panelWidth, final int panelHeight){
-            if(init){
+            if(initialized){
                 return;
             }
-            init = true;
+            initialized = true;
             gridOffset = new CellPoint(0, 0);
 
             calculateGridSize(new CellPoint(panelWidth, panelHeight));
@@ -239,8 +294,40 @@ public class SwingMain {
 
         public void handlePaintCell(final CellPoint cellPoint, final boolean shiftDown) {
             final CellPoint gridPoint = cellPoint.minus(originOffset).divide(scaleFactor);
-            controller.getModel().putCell(gridPoint, shiftDown ? CellState.DEAD_CHANGED : CellState.ALIVE_CHANGED);
+            controller.getModel().putCell(gridPoint, shiftDown ? CellState.DEAD_UNCHANGED : CellState.ALIVE_CHANGED);
         }
+
+        public void handlePlay() {
+            paused = false;
+        }
+
+        public void handlePause() {
+            paused = true;
+        }
+
+        public boolean handleTrigger() {
+            if(!initialized || paused){
+                return false;
+            }
+
+            if(worker==null || worker.isDone()){
+                worker = new SwingWorker<Void, Void>(){
+                    @Override
+                    protected Void doInBackground() throws Exception {
+                        long timeStamp = System.currentTimeMillis();
+                        if(controller.modelHasNextGeneration()){
+                            controller.processNextGeneration();
+                        }
+                        System.out.println(System.currentTimeMillis()-timeStamp);
+                        return null;
+                    }
+                };
+                worker.execute();
+                return true;
+            }
+            return false;
+        }
+
 
         public void paint(final Graphics g) {
             paintModel(g);
@@ -280,27 +367,6 @@ public class SwingMain {
                 dot.setPos(new CellPoint(cell.getPoint().getX(), cell.getPoint().getY()).multiply(scaleFactor));
                 dot.paintDot(g);
             }
-        }
-
-        public boolean trigger() {
-            if(!isInit()){
-                return false;
-            }
-
-            if(worker==null || worker.isDone()){
-                worker = new SwingWorker<Void, Void>(){
-                    @Override
-                    protected Void doInBackground() throws Exception {
-                        if(controller.modelHasNextGeneration()){
-                            controller.processNextGeneration();
-                        }
-                        return null;
-                    }
-                };
-                worker.execute();
-                return true;
-            }
-            return false;
         }
     }
 
