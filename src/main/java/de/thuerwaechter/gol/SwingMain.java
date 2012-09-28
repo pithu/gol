@@ -102,7 +102,7 @@ public class SwingMain {
             addMouseWheelListener(new MouseAdapter() {
                 @Override
                 public void mouseWheelMoved(final MouseWheelEvent e) {
-                    swingController.handleZoomPanel(toCellPoint(e.getPoint()), e.getWheelRotation() * e.getScrollAmount());
+                    swingController.handleZoomPanel(toCellPoint(e.getPoint()), e.getWheelRotation());
                 }
             });
 
@@ -219,7 +219,7 @@ public class SwingMain {
         }
 
         public void handleZoomPanel(final CellPoint zoomPoint, final int zoomDirection) {
-            zoomPanel(zoomPoint, signum(zoomDirection));
+            zoomPanel(zoomPoint, zoomDirection * -1);
         }
 
         public void paint(final Graphics g) {
@@ -282,11 +282,6 @@ public class SwingMain {
             }
             return false;
         }
-
-        private static int signum(final int value){
-            return value > 0 ? 1 : value < 0 ? -1 : 0;
-        }
-
     }
 
     private static class Dot{
