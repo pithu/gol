@@ -42,7 +42,7 @@ public class SwingMain {
     private static final int CANVAS_SIZE_X = 500;
     private static final int CANVAS_SIZE_Y = 500;
 
-    private static final Pattern initialPattern = Pattern.GLIDER;
+    private static final Pattern initialPattern = Pattern.HWSS;
     private static final ModelType modelType = ModelType.FIXED_MIRROR;
     private static int scaleFactor = 10;
 
@@ -157,6 +157,7 @@ public class SwingMain {
                 paintPanelController.handlePause();
                 buttonPanelController.setToPlay();
             } else if("next".equals(e.getActionCommand())){
+                buttonPanelController.setToPlay();
                 paintPanelController.handleNext();
             } else if("reset".equals(e.getActionCommand())){
                 buttonPanelController.setToPlay();
@@ -325,9 +326,7 @@ public class SwingMain {
         }
 
         public void handleNext() {
-            if(!paused){
-                return;
-            }
+            paused = true;
             showNext = true;
         }
 
