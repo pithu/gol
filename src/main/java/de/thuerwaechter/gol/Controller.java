@@ -34,14 +34,12 @@ import de.thuerwaechter.gol.model.Model;
  * @author <a href="pts@thuerwaechter.de">pithu</a>
  */
 public class Controller {
-    private final AtomicReference<ModelFactory> modelFactory = new AtomicReference<ModelFactory>();
     private Model currentModel;
     private int nrOfGeneration;
     private CellSuccessorStateStrategy cellSuccessorStateStrategy;
 
-    public Controller(final ModelFactory modelFactory) {
-        this.modelFactory.set(modelFactory);
-        currentModel = modelFactory.newModel();
+    public Controller(final Model model) {
+        currentModel = model;
         nrOfGeneration = 0;
         cellSuccessorStateStrategy = new ConwaysCellSuccessorStateStrategy(new Integer[]{2,3}, new Integer[]{3});
     }
@@ -52,10 +50,6 @@ public class Controller {
 
     public Model getModel() {
         return currentModel;
-    }
-
-    public void setModelFactory(final ModelFactory modelFactory) {
-        this.modelFactory.set(modelFactory);
     }
 
     public int getNrOfGeneration() {
@@ -115,31 +109,6 @@ public class Controller {
                 } else {
                     return CellState.DEAD_UNCHANGED;
                 }
-            }
-        }
-    }
-
-    public static class ModelFactory{
-        private final Model.ModelType modelType;
-        private final int sizeX, sizeY;
-
-        public ModelFactory(final Model.ModelType modelType, final int sizeX, final int sizeY) {
-            this.modelType = modelType;
-            this.sizeX = sizeX;
-            this.sizeY = sizeY;
-        }
-
-        public static ModelFactory newInfiniteModelFactory(){
-            return new ModelFactory(Model.ModelType.INFINITE, 0, 0);
-        }
-
-        public Model newModel(){
-            if(modelType == Model.ModelType.INFINITE){
-                return Model.newInfiniteModel();
-            } else if (modelType == Model.ModelType.FIXED_CUT){
-                return Model.newFixedSizeCutEdgesModel(sizeX, sizeY);
-            } else {
-                return Model.newFixedSizeMirrorEdgesModel(sizeX, sizeY);
             }
         }
     }

@@ -21,6 +21,7 @@ import java.util.Arrays;
 import de.thuerwaechter.gol.model.Cell;
 import de.thuerwaechter.gol.model.CellPoint;
 import de.thuerwaechter.gol.model.CellState;
+import de.thuerwaechter.gol.model.Model;
 import de.thuerwaechter.gol.model.Pattern;
 import org.junit.Test;
 
@@ -32,7 +33,7 @@ import static junit.framework.Assert.*;
 public class ControllerTest {
     @Test
     public void testProcess3DotLine(){
-        Controller controller = new Controller(Controller.ModelFactory.newInfiniteModelFactory());
+        Controller controller = new Controller(Model.newInfiniteModel());
         controller.getModel().putPattern(Pattern.buildPattern(Arrays.asList("----","XXX")));
 
         assertEquals(15, controller.getModel().getCellMap().size());
@@ -50,7 +51,7 @@ public class ControllerTest {
 
     @Test
     public void testProcessSquare(){
-        Controller controller = new Controller(Controller.ModelFactory.newInfiniteModelFactory());
+        Controller controller = new Controller(Model.newInfiniteModel());
         controller.getModel().putPattern(Pattern.buildPattern(Arrays.asList("XX","XX")));
 
         assertEquals(16, controller.getModel().getCellMap().size());
@@ -66,7 +67,7 @@ public class ControllerTest {
 
     @Test
     public void testProcessGeneration54(){
-        Controller controller = new Controller(Controller.ModelFactory.newInfiniteModelFactory());
+        Controller controller = new Controller(Model.newInfiniteModel());
         controller.getModel().putPattern(Pattern.GENERATION_54);
 
         while(controller.modelHasNextGeneration()){

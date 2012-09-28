@@ -29,6 +29,7 @@ import javax.swing.*;
 import de.thuerwaechter.gol.model.Cell;
 import de.thuerwaechter.gol.model.CellState;
 import de.thuerwaechter.gol.model.Model;
+import de.thuerwaechter.gol.model.ModelFactory;
 import de.thuerwaechter.gol.model.Pattern;
 import de.thuerwaechter.gol.model.CellPoint;
 
@@ -64,7 +65,7 @@ public class SwingMain {
 
     private static void createAndShowGUI() {
         JFrame f = new JFrame("Game of life alpha");
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         f.setSize(CANVAS_SIZE_X, CANVAS_SIZE_Y);
         f.setLocation(30, 30);
         f.setVisible(true);
@@ -176,7 +177,7 @@ public class SwingMain {
             setModelNrOfDots();
             centerOriginOffset();
 
-            controller = new Controller(new Controller.ModelFactory(modelType, modelNrOfDots.x, modelNrOfDots.y));
+            controller = new Controller(new ModelFactory(modelType, modelNrOfDots.x, modelNrOfDots.y).newModel());
             final CellPoint patterStartPoint = modelNrOfDots.divide(3);
             controller.getModel().putPattern(initialPattern.move(patterStartPoint.x, patterStartPoint.y));
         }
