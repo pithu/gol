@@ -51,12 +51,37 @@ public class Model {
     }
 
     public Model putPattern(final Pattern pattern) {
-        for(CellPoint cellPoint : pattern.getCells()){
+        for(CellPoint cellPoint : pattern.getPoints()){
             putCell(cellPoint, CellState.ALIVE_CHANGED);
         }
         populateNeighbours();
         return this;
     }
+
+    public Pattern getPattern(){
+        int minX = Integer.MAX_VALUE;
+        int minY = Integer.MAX_VALUE;
+        for(Map.Entry<CellPoint, CellState> entry : cellMap.entrySet()){
+            if(!entry.getValue().isAlive()){
+                continue;
+            }
+            if(entry.getKey().x<minX){
+                minX = entry.getKey().x;
+            }
+            if(entry.getKey().y<minY){
+                minY = entry.getKey().y;
+            }
+        }
+        List<CellPoint> points = new ArrayList<CellPoint>();
+        for(Map.Entry<CellPoint, CellState> entry : cellMap.entrySet()){
+            if(!entry.getValue().isAlive()){
+                continue;
+            }
+            points.add(new CellPoint(entry.getKey().x-minX, entry.getKey().y-minY));
+        }
+        return new Pattern(points);
+    }
+
 
     public Collection<Cell> getCellMap() {
         List<Cell> cellList = new ArrayList<Cell>();

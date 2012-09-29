@@ -41,6 +41,7 @@ public class Controller {
     public Controller(final Model model) {
         currentModel = model;
         nrOfGeneration = 0;
+        // cellSuccessorStateStrategy = new ConwaysCellSuccessorStateStrategy(new Integer[]{2,3}, new Integer[]{3});
         cellSuccessorStateStrategy = new ConwaysCellSuccessorStateStrategy(new Integer[]{2,3}, new Integer[]{3});
     }
 

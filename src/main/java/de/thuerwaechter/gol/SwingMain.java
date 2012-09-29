@@ -37,14 +37,13 @@ import de.thuerwaechter.gol.model.CellPoint;
  * @author <a href="pts@thuerwaechter.de">pithu</a>
  */
 public class SwingMain {
+    public static final ModelType MODEL_TYPE = ModelType.INFINITE;
+    public static final Pattern PATTERN = Pattern.GLIDER_PRODUCER;
+
     private static final int PAINT_SPEED = 100;
 
     private static final int CANVAS_SIZE_X = 500;
     private static final int CANVAS_SIZE_Y = 500;
-
-    private static final Pattern initialPattern = Pattern.HWSS;
-    private static final ModelType modelType = ModelType.FIXED_MIRROR;
-    private static int scaleFactor = 10;
 
     private static Color gridColor = Color.GRAY;
     private static Color gridBoundaryColor = Color.RED;
@@ -53,7 +52,6 @@ public class SwingMain {
     private static Color aliveUnChanged = Color.BLACK;
     private static Color deadChanged = Color.LIGHT_GRAY;
     private static Color deadUnChanged = Color.WHITE;
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -198,19 +196,31 @@ public class SwingMain {
 
             playPauseButton = new JButton(playButtonIcon);
             playPauseButton.addActionListener(mainPanel);
+            hideButtonBorder(playPauseButton);
+
             mainPanel.add(playPauseButton);
             setToPlay();
 
             nextButton = new JButton(nextButtonIcon);
             nextButton.setActionCommand("next");
             nextButton.addActionListener(mainPanel);
+            hideButtonBorder(nextButton);
             mainPanel.add(nextButton);
 
             resetButton = new JButton(resetButtonIcon);
             resetButton.setActionCommand("reset");
             resetButton.addActionListener(mainPanel);
+            hideButtonBorder(resetButton);
             mainPanel.add(resetButton);
 
+        }
+
+        private void hideButtonBorder(JButton button) {
+            button.setOpaque(false);
+            button.setFocusPainted(false);
+            button.setBorderPainted(false);
+            button.setContentAreaFilled(false);
+            button.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         }
 
         public void handleResizePanel(final CellPoint cellPoint) {
@@ -230,6 +240,11 @@ public class SwingMain {
     private static class PaintPanelController {
         private SwingWorker<Void, Void> worker;
 
+        private Pattern initialPattern = PATTERN;
+        private ModelType modelType = MODEL_TYPE;
+        private int scaleFactor = 10;
+
+
         private CellPoint gridOffset, originOffset, draggedOriginOffset;
         private CellPoint gridNrOfDots, modelNrOfDots;
         private CellPoint gridRect, panelRect;
@@ -238,11 +253,13 @@ public class SwingMain {
         private boolean initialized = false;
         private boolean paused;
         private boolean showNext;
+        private boolean firstRun;
 
         public void initialize(final int panelWidth, final int panelHeight){
             if(initialized){
                 return;
             }
+            firstRun = true;
             paused = true;
             showNext = false;
             initialized = true;
@@ -333,6 +350,9 @@ public class SwingMain {
         public void handleReset(final int width, final int height) {
             paused = true;
             initialized = false;
+            if(firstRun){
+                initialPattern = Pattern.BLANK;
+            }
             initialize(width, height);
         }
 
@@ -345,11 +365,14 @@ public class SwingMain {
                 worker = new SwingWorker<Void, Void>(){
                     @Override
                     protected Void doInBackground() throws Exception {
-                        long timeStamp = System.currentTimeMillis();
+                        if(firstRun){
+                            firstRun = false;
+                            initialPattern = controller.getModel().getPattern();
+                            System.out.println(initialPattern.dumpPattern());
+                        }
                         if(controller.modelHasNextGeneration()){
                             controller.processNextGeneration();
                         }
-                        System.out.println(System.currentTimeMillis()-timeStamp);
                         return null;
                     }
                 };
@@ -367,7 +390,7 @@ public class SwingMain {
         }
 
         private void paintGrid(final Graphics g) {
-             for(int x= gridOffset.x; x<=gridRect.x + gridOffset.x; x += scaleFactor){
+            for(int x= gridOffset.x; x<=gridRect.x + gridOffset.x; x += scaleFactor){
                 g.setColor(gridColor);
                 g.drawLine(x, gridOffset.y, x, gridRect.y + gridOffset.y);
             }
