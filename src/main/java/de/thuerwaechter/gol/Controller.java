@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import de.thuerwaechter.gol.model.Cell;
 import de.thuerwaechter.gol.model.CellPoint;
@@ -41,8 +40,13 @@ public class Controller {
     public Controller(final Model model) {
         currentModel = model;
         nrOfGeneration = 0;
-        // cellSuccessorStateStrategy = new ConwaysCellSuccessorStateStrategy(new Integer[]{2,3}, new Integer[]{3});
         cellSuccessorStateStrategy = new ConwaysCellSuccessorStateStrategy(new Integer[]{2,3}, new Integer[]{3});
+    }
+
+    public Controller(final Model model, final Integer nrOfAliveNeighboursMakesALifeCellDie[], final Integer nrOfAliveNeighboursMakesADeadCellAlive[]) {
+        currentModel = model;
+        nrOfGeneration = 0;
+        cellSuccessorStateStrategy = new ConwaysCellSuccessorStateStrategy(nrOfAliveNeighboursMakesALifeCellDie, nrOfAliveNeighboursMakesADeadCellAlive);
     }
 
     public boolean modelHasNextGeneration() {
@@ -78,12 +82,12 @@ public class Controller {
     }
 
     private static class ConwaysCellSuccessorStateStrategy implements CellSuccessorStateStrategy {
-        private final Set<Integer> aliveValues;
-        private final Set<Integer> deadValues;
+        private final Set<Integer> nrOfAliveNeighboursMakesALifeCellDie;
+        private final Set<Integer> nrOfAliveNeighboursMakesADeadCellAlive;
 
-        private ConwaysCellSuccessorStateStrategy(final Integer aliveValues[], final Integer deadValues[]) {
-            this.aliveValues = new HashSet<Integer>(Arrays.asList(aliveValues));
-            this.deadValues = new HashSet<Integer>(Arrays.asList(deadValues));
+        private ConwaysCellSuccessorStateStrategy(final Integer nrOfAliveNeighboursMakesALifeCellDie[], final Integer nrOfAliveNeighboursMakesADeadCellAlive[]) {
+            this.nrOfAliveNeighboursMakesALifeCellDie = new HashSet<Integer>(Arrays.asList(nrOfAliveNeighboursMakesALifeCellDie));
+            this.nrOfAliveNeighboursMakesADeadCellAlive = new HashSet<Integer>(Arrays.asList(nrOfAliveNeighboursMakesADeadCellAlive));
         }
 
         public CellState calculateSuccessorState(final Cell cell, final Collection<Cell> neighbours) {
@@ -94,14 +98,14 @@ public class Controller {
                 }
             }
             if(cell.isAlive()){
-                if(aliveValues.contains(numberOfAliveNeighbours)){
+                if(nrOfAliveNeighboursMakesALifeCellDie.contains(numberOfAliveNeighbours)){
                     return CellState.ALIVE_UNCHANGED;
                 } else {
                     return CellState.DEAD_CHANGED;
                 }
             }
            else {
-                if(deadValues.contains(numberOfAliveNeighbours)){
+                if(nrOfAliveNeighboursMakesADeadCellAlive.contains(numberOfAliveNeighbours)){
                     return CellState.ALIVE_CHANGED;
                 } else {
                     return CellState.DEAD_UNCHANGED;

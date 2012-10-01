@@ -37,8 +37,10 @@ import de.thuerwaechter.gol.model.CellPoint;
  * @author <a href="pts@thuerwaechter.de">pithu</a>
  */
 public class SwingMain {
+    public static final Integer[] NR_OF_ALIVE_NEIGHBOURS_MAKES_A_LIFE_CELL_DIE = new Integer[]{2,3};
+    public static final Integer[] NR_OF_ALIVE_NEIGHBOURS_MAKES_A_DEAD_CELL_ALIVE = new Integer[]{3};
     public static final ModelType MODEL_TYPE = ModelType.INFINITE;
-    public static final Pattern PATTERN = Pattern.GLIDER_PRODUCER;
+    public static final Pattern PATTERN = Pattern.GENERATION_54;
 
     private static final int PAINT_SPEED = 100;
 
@@ -159,7 +161,7 @@ public class SwingMain {
                 paintPanelController.handleNext();
             } else if("reset".equals(e.getActionCommand())){
                 buttonPanelController.setToPlay();
-                paintPanelController.handleReset(getWidth(), getHeight());
+                paintPanelController.handleReset(this);
             }
             repaint();
         }
@@ -167,9 +169,10 @@ public class SwingMain {
         public void paintComponent(Graphics g) {
             setBackground(backGroundColor);
             super.paintComponent(g);
-            paintPanelController.initialize(getWidth(), getHeight());
+            paintPanelController.initialize(this);
             paintPanelController.paint(g);
             buttonPanelController.initialize(this);
+            buttonPanelController.setGeneration(paintPanelController.getNrOfGeneration());
         }
 
         private static CellPoint toCellPoint(final Point point){
@@ -187,6 +190,7 @@ public class SwingMain {
         private JButton playPauseButton;
         private JButton nextButton;
         private JButton resetButton;
+        private JLabel generationLabel;
 
         public void initialize(final MainPanel mainPanel) {
             if(initialized){
@@ -213,6 +217,13 @@ public class SwingMain {
             hideButtonBorder(resetButton);
             mainPanel.add(resetButton);
 
+            generationLabel = new JLabel("000");
+            generationLabel.setBackground(Color.WHITE);
+            generationLabel.setOpaque(true);
+            generationLabel.setFont(generationLabel.getFont().deriveFont(Font.BOLD, 24.0f));
+            generationLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            setGeneration(0);
+            mainPanel.add(generationLabel);
         }
 
         private void hideButtonBorder(JButton button) {
@@ -235,6 +246,10 @@ public class SwingMain {
             playPauseButton.setActionCommand("play");
             playPauseButton.setIcon(playButtonIcon);
         }
+
+        public void setGeneration(int nrOfGenerations){
+           generationLabel.setText(String.format("%04d", nrOfGenerations));
+        }
     }
 
     private static class PaintPanelController {
@@ -255,7 +270,7 @@ public class SwingMain {
         private boolean showNext;
         private boolean firstRun;
 
-        public void initialize(final int panelWidth, final int panelHeight){
+        public void initialize(final MainPanel mainPanel){
             if(initialized){
                 return;
             }
@@ -265,11 +280,12 @@ public class SwingMain {
             initialized = true;
             gridOffset = new CellPoint(0, 0);
 
-            calculateGridSize(new CellPoint(panelWidth, panelHeight));
+            calculateGridSize(new CellPoint(mainPanel.getWidth(), mainPanel.getHeight()));
             setModelNrOfDots();
             centerOriginOffset();
 
-            controller = new Controller(new ModelFactory(modelType, modelNrOfDots.x, modelNrOfDots.y).newModel());
+            controller = new Controller(new ModelFactory(modelType, modelNrOfDots.x, modelNrOfDots.y).newModel(),
+                    NR_OF_ALIVE_NEIGHBOURS_MAKES_A_LIFE_CELL_DIE, NR_OF_ALIVE_NEIGHBOURS_MAKES_A_DEAD_CELL_ALIVE);
             final CellPoint patterStartPoint = modelNrOfDots.divide(3);
             controller.getModel().putPattern(initialPattern.move(patterStartPoint.x, patterStartPoint.y));
         }
@@ -347,13 +363,13 @@ public class SwingMain {
             showNext = true;
         }
 
-        public void handleReset(final int width, final int height) {
+        public void handleReset(final MainPanel mainPanel) {
             paused = true;
             initialized = false;
             if(firstRun){
                 initialPattern = Pattern.BLANK;
             }
-            initialize(width, height);
+            initialize(mainPanel);
         }
 
         public boolean handleTrigger() {
@@ -422,6 +438,13 @@ public class SwingMain {
                 dot.setPos(new CellPoint(cell.getPoint().getX(), cell.getPoint().getY()).multiply(scaleFactor));
                 dot.paintDot(g);
             }
+        }
+
+        public int getNrOfGeneration() {
+            if(!initialized){
+                return 0;
+            }
+            return controller.getNrOfGeneration();
         }
     }
 
